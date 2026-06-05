@@ -12,8 +12,19 @@ export async function getLegacySheetsClient(legacySettings: any) {
     throw new Error("Google Sheets credentials not configured in Legacy Settings");
   }
 
+  // Try to parse as JSON just in case the user pasted the entire credentials file into the private key field
+  let rawKey = private_key;
+  try {
+    const parsed = JSON.parse(private_key);
+    if (parsed.private_key) {
+      rawKey = parsed.private_key;
+    }
+  } catch (e) {
+    // Not a JSON object
+  }
+
   // Bulletproof PEM formatter to fix 'DECODER routines::unsupported'
-  let formattedPrivateKey = private_key;
+  let formattedPrivateKey = rawKey;
   
   // Attempt to extract the inner base64 payload
   const keyMatch = formattedPrivateKey.match(/-----BEGIN PRIVATE KEY-----(.*?)-----END PRIVATE KEY-----/s);
@@ -27,6 +38,13 @@ export async function getLegacySheetsClient(legacySettings: any) {
   } else {
     // Fallback if regex fails (shouldn't happen for valid keys)
     formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, '\n').replace(/"/g, '').trim();
+    // Ensure it has headers if they were completely stripped
+    if (!formattedPrivateKey.includes('-----BEGIN PRIVATE KEY-----')) {
+      // Chunk it anyway assuming it's pure base64
+      const cleanBase64 = formattedPrivateKey.replace(/[\r\n\s\\]+/g, '');
+      const chunks = cleanBase64.match(/.{1,64}/g) || [];
+      formattedPrivateKey = `-----BEGIN PRIVATE KEY-----\n${chunks.join('\n')}\n-----END PRIVATE KEY-----\n`;
+    }
   }
 
   const auth = new google.auth.GoogleAuth({
