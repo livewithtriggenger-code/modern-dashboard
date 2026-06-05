@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, Loader2, Search } from "lucide-react";
+import { Send, Bot, Loader2, Search, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 
 export default function LegacyConversationsPage() {
