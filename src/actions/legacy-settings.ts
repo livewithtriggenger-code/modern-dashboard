@@ -24,13 +24,17 @@ export async function saveLegacySettings(settings: {
     ...settings
   };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("user_preferences")
     .upsert({ 
       user_id: user.id, 
       legacy_settings,
       mode: 'legacy' // Ensure mode is set if creating for the first time
-    }, { onConflict: 'user_id' });
+    }, { onConflict: 'user_id' })
+    .select()
+    .single();
+
+  console.log("SAVE DB RESPONSE:", data, error);
 
   if (error) {
     console.error("Error saving legacy settings:", error);
@@ -38,4 +42,21 @@ export async function saveLegacySettings(settings: {
   }
 
   return { success: true };
+}
+
+export async function getLegacySettings() {
+  const user = await getAuthenticatedUser();
+  const supabase = await createClient();
+
+  console.log("LOAD PAYLOAD: fetching for user", user.id);
+
+  const { data, error } = await supabase
+    .from("user_preferences")
+    .select("legacy_settings")
+    .eq("user_id", user.id)
+    .single();
+
+  console.log("LOAD DB RESPONSE:", data, error);
+
+  return data?.legacy_settings || {};
 }

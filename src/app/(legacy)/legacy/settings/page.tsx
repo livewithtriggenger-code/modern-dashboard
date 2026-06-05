@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LegacyHealthCheck } from "@/legacy/components/settings/LegacyHealthCheck";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { saveLegacySettings } from "@/actions/legacy-settings";
+import { saveLegacySettings, getLegacySettings } from "@/actions/legacy-settings";
 import { Loader2 } from "lucide-react";
 import { useLegacyStore } from "@/legacy/store/legacy-store";
 
@@ -20,6 +20,23 @@ export default function LegacySettingsPage() {
     sheets_private_key: "",
     telegram_bot_token: ""
   });
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const settings = await getLegacySettings();
+        setFormData({
+          sheets_url: settings.sheets_url || "",
+          sheets_client_email: settings.sheets_client_email || "",
+          sheets_private_key: settings.sheets_private_key || "",
+          telegram_bot_token: settings.telegram_bot_token || ""
+        });
+      } catch (err) {
+        console.error("Failed to load legacy settings", err);
+      }
+    }
+    loadSettings();
+  }, []);
 
   const handleSave = async () => {
     try {
