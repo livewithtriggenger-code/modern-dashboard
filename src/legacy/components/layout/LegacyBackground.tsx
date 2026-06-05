@@ -3,25 +3,6 @@ import * as React from "react"
 export function LegacyBackground() {
   return (
     <div className="fixed inset-0 z-[-1] pointer-events-none bg-[#0B0F19] overflow-hidden">
-      {/* Image Asset Layers */}
-      
-      {/* Primary background layer - brings abstract data structures */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-[0.25] mix-blend-screen transition-opacity duration-1000"
-        style={{ backgroundImage: "url('/legacy/backgrounds/primary-bg.png')" }}
-      />
-      
-      {/* Secondary accent layer - adds floating clusters and depth */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-[0.35] mix-blend-lighten transition-opacity duration-1000"
-        style={{ backgroundImage: "url('/legacy/backgrounds/secondary-bg.png')" }}
-      />
-      
-      {/* Decorative overlay layer - adds node network aesthetics */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-[0.15] mix-blend-screen transition-opacity duration-1000"
-        style={{ backgroundImage: "url('/legacy/backgrounds/overlay-bg.png')" }}
-      />
 
       {/* Modern SaaS Gradient Mesh Overlay for Dark Mode */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/40 via-[#0B0F19]/80 to-slate-950/90" />
