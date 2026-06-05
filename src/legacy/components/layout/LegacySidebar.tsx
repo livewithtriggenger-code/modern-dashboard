@@ -23,7 +23,6 @@ const navigation = [
   { name: "Conversations", href: "/legacy/conversations", icon: MessageSquare },
   { name: "Appointments", href: "/legacy/appointments", icon: Calendar },
   { name: "AI Memory", href: "/legacy/memory", icon: Brain },
-  { name: "Follow-ups", href: "/legacy/follow-ups", icon: Clock },
   { name: "Settings", href: "/legacy/settings", icon: Settings },
 ];
 
