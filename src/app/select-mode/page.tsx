@@ -21,12 +21,21 @@ export default async function SelectModePage() {
     .limit(1)
     .single();
 
+  let currentMode = "none";
+  let currentWorkspaceId = "";
+
   if (membership) {
+    currentWorkspaceId = membership.workspace_id;
     const { data: settings } = await supabase
       .from("workspace_settings")
       .select("mode")
       .eq("workspace_id", membership.workspace_id)
       .single();
+      
+    if (settings) {
+      currentMode = settings.mode || "none";
+    }
+  }
 
   // If no mode is set, render the selection screen
   return (
@@ -48,8 +57,8 @@ export default async function SelectModePage() {
 
         <ModeSelector 
           userId={user.id} 
-          workspaceId={membership?.workspace_id || ""} 
-          currentMode={settings?.mode || "none"} 
+          workspaceId={currentWorkspaceId} 
+          currentMode={currentMode} 
         />
       </div>
     </div>
