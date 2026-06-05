@@ -157,15 +157,6 @@ export default function LegacySettingsPage() {
 
   return (
     <div className="relative min-h-screen pb-24">
-      {/* Premium Background System */}
-      <div className="fixed inset-0 z-[-1] pointer-events-none bg-[#f8fafc]">
-        {/* Soft gradient mesh */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-white to-purple-50/30" />
-        
-        {/* Blurred dynamic light overlays */}
-        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-blue-300/10 blur-[100px]" />
-        <div className="absolute bottom-[20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-300/10 blur-[120px]" />
-      </div>
       
       <div className="max-w-[880px] mx-auto space-y-10 pt-10 px-4 sm:px-6">
         
