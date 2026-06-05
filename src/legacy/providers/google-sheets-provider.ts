@@ -12,8 +12,12 @@ export async function getLegacySheetsClient(legacySettings: any) {
     throw new Error("Google Sheets credentials not configured in Legacy Settings");
   }
 
-  // Handle both escaped and unescaped newlines in private key
-  const formattedPrivateKey = private_key.replace(/\\n/g, "\n");
+  // Handle both escaped and unescaped newlines in private key, and remove wrapping quotes
+  let formattedPrivateKey = private_key.trim();
+  if (formattedPrivateKey.startsWith('"') && formattedPrivateKey.endsWith('"')) {
+    formattedPrivateKey = formattedPrivateKey.slice(1, -1);
+  }
+  formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, "\n");
 
   const auth = new google.auth.GoogleAuth({
     credentials: {
