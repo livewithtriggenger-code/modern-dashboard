@@ -1,3 +1,5 @@
+"use server";
+
 import { createClient } from "@/lib/supabase/server";
 import { getAuthenticatedUser, requireRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
