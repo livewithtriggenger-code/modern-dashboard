@@ -29,7 +29,6 @@ import {
   Calendar,
   MessageSquare,
   Minus,
-  Brain,
   Filter
 } from "lucide-react";
 
@@ -71,7 +70,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // ── Main Dashboard Component ─────────────────────────────────────────────────
 
 export default function LegacyDashboardPage() {
-  const { leads, conversations, appointments, memory, refreshData, lastSynced } = useLegacyStore();
+  const { leads, conversations, appointments, refreshData, lastSynced } = useLegacyStore();
   const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<DateFilter>("30d");
   const [activityToggle, setActivityToggle] = useState<"messages" | "leads">("messages");
@@ -256,60 +255,7 @@ export default function LegacyDashboardPage() {
     }));
   }, [conversations, filter]);
 
-  // AI Insights
-  const aiInsights = useMemo(() => {
-    // We only aggregate memory for leads in the current period, OR if lifetime
-    const validLeadIds = new Set(currLeads.map(l => l.id));
-    if (filter === "all") leads.forEach(l => validLeadIds.add(l.id));
 
-    const bizTypes: Record<string, number> = {};
-    let totalBudget = 0;
-    let budgetCount = 0;
-    const intents: Record<string, number> = {};
-    const urgencies = { high: 0, medium: 0, low: 0 };
-
-    memory.forEach(m => {
-      if (!validLeadIds.has(m.leadId)) return;
-      const type = (m.memoryType || "").toLowerCase();
-      const val = (m.memoryValue || "").toLowerCase();
-      const cleanVal = val.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-
-      if (type === "business_type") {
-        bizTypes[cleanVal] = (bizTypes[cleanVal] || 0) + 1;
-      }
-      if (type === "budget") {
-        const num = parseInt(val.replace(/[^0-9]/g, ""));
-        if (!isNaN(num) && num > 0) {
-          totalBudget += num;
-          budgetCount++;
-        }
-      }
-      if (type === "intent") {
-        intents[cleanVal] = (intents[cleanVal] || 0) + 1;
-      }
-      if (type === "urgency") {
-        if (val.includes("high") || val.includes("urgent")) urgencies.high++;
-        else if (val.includes("medium")) urgencies.medium++;
-        else if (val.includes("low")) urgencies.low++;
-      }
-    });
-
-    const topBiz = Object.entries(bizTypes).sort((a,b)=>b[1]-a[1])[0]?.[0] || "None Detected";
-    const avgBudget = budgetCount > 0 ? Math.round(totalBudget / budgetCount) : 0;
-    const topIntent = Object.entries(intents).sort((a,b)=>b[1]-a[1])[0]?.[0] || "None Detected";
-
-    // Dynamic Summary
-    const sumLines = [];
-    if (topBiz !== "None Detected") sumLines.push(`Most leads are ${topBiz}s.`);
-    if (avgBudget > 0) sumLines.push(`Average budget is $${avgBudget.toLocaleString()}.`);
-    if (topIntent !== "None Detected") sumLines.push(`${topIntent} is the most common intent.`);
-    if (urgencies.high > urgencies.medium && urgencies.high > urgencies.low) sumLines.push("Urgency is predominantly High.");
-    else if (urgencies.low > urgencies.high) sumLines.push("Most leads are in discovery (Low urgency).");
-
-    const summary = sumLines.length > 0 ? sumLines.join(" ") : "Insufficient AI memory data for the selected period to generate an executive summary.";
-
-    return { topBiz, avgBudget, topIntent, urgencies, summary };
-  }, [memory, currLeads, filter, leads]);
 
   if (!mounted) return null;
 
@@ -642,57 +588,7 @@ export default function LegacyDashboardPage() {
 
       </div>
 
-      {/* ── 5. AI Business Insights ───────────────────────────────────────── */}
-      <Panel className="p-6 md:p-8">
-        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <h2 className="text-xl font-black text-white flex items-center gap-2.5">
-              <Brain className="h-6 w-6 text-indigo-500" /> AI Business Insights
-            </h2>
-            <p className="text-sm font-medium text-slate-400 mt-1">Executive intelligence generated from conversation memory.</p>
-          </div>
-          
-          <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl flex-1 max-w-xl shadow-inner">
-            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block mb-1">Executive Summary</span>
-            <p className="text-sm font-medium text-indigo-100 leading-relaxed">
-              {aiInsights.summary}
-            </p>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-          {/* Top Business Type */}
-          <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Top Business Type</span>
-            <span className="text-lg font-bold text-white capitalize">{aiInsights.topBiz}</span>
-          </div>
-
-          {/* Average Budget */}
-          <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Average Budget</span>
-            <span className="text-lg font-bold text-emerald-400">
-              {aiInsights.avgBudget > 0 ? `$${aiInsights.avgBudget.toLocaleString()}` : "N/A"}
-            </span>
-          </div>
-
-          {/* Most Common Intent */}
-          <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Primary Intent</span>
-            <span className="text-lg font-bold text-blue-400 capitalize">{aiInsights.topIntent}</span>
-          </div>
-
-          {/* Urgency Breakdown */}
-          <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-center gap-2.5">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Urgency Distribution</span>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-rose-500"/><span className="text-xs font-bold text-white">{aiInsights.urgencies.high}</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-amber-500"/><span className="text-xs font-bold text-white">{aiInsights.urgencies.medium}</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-slate-500"/><span className="text-xs font-bold text-white">{aiInsights.urgencies.low}</span></div>
-            </div>
-          </div>
-        </div>
-
-      </Panel>
 
     </div>
   );
