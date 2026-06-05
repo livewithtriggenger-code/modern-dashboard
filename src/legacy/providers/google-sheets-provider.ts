@@ -5,7 +5,7 @@ export async function getLegacySheetsClient(legacySettings: any) {
     throw new Error("No legacy settings found");
   }
 
-  const client_email = legacySettings.sheets_client_email;
+  let client_email = legacySettings.sheets_client_email?.trim();
   const private_key = legacySettings.sheets_private_key;
 
   if (!client_email || !private_key) {
@@ -18,6 +18,10 @@ export async function getLegacySheetsClient(legacySettings: any) {
     const parsed = JSON.parse(private_key);
     if (parsed.private_key) {
       rawKey = parsed.private_key;
+    }
+    // If they pasted the full JSON, we can completely ignore their manually typed email and use the 100% correct one from the file!
+    if (parsed.client_email) {
+      client_email = parsed.client_email;
     }
   } catch (e) {
     // Not a JSON object
