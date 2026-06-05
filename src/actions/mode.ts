@@ -32,10 +32,10 @@ export async function setUserMode(mode: "legacy" | "v2") {
     throw new Error("Failed to set mode");
   }
 
-  // Redirect based on selected mode
+  // Return path to redirect on the client to avoid NEXT_REDIRECT try/catch swallowing
   if (mode === "legacy") {
-    redirect("/legacy/dashboard");
+    return { success: true, redirectTo: "/legacy/dashboard" };
   } else {
-    redirect("/dashboard");
+    return { success: true, redirectTo: "/dashboard" };
   }
 }

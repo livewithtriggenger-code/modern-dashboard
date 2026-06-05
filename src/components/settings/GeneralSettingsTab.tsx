@@ -9,9 +9,12 @@ import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { setUserMode } from "@/actions/mode";
 
+import { useRouter } from "next/navigation";
+
 export function GeneralSettingsTab() {
   const { settingsQuery, updateSettings } = useSettings();
   const { data: settings, isLoading } = settingsQuery;
+  const router = useRouter();
   
   const [formData, setFormData] = useState({
     business_name: "",
@@ -130,7 +133,10 @@ export function GeneralSettingsTab() {
                 You are currently using the modern V2 dashboard. Switch to Legacy to access your Google Sheets integration.
               </p>
             </div>
-            <Button variant="outline" onClick={() => setUserMode("legacy")}>
+            <Button variant="outline" onClick={async () => {
+              const res = await setUserMode("legacy");
+              if (res?.redirectTo) router.push(res.redirectTo);
+            }}>
               Switch to Legacy Mode
             </Button>
           </div>

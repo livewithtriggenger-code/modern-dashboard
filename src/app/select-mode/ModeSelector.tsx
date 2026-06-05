@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { setUserMode } from "@/actions/mode";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,11 +12,15 @@ import { cn } from "@/lib/utils";
 export function ModeSelector() {
   const [loadingMode, setLoadingMode] = useState<"legacy" | "v2" | null>(null);
 
+  const router = useRouter();
+
   const handleSelectMode = async (mode: "legacy" | "v2") => {
     try {
       setLoadingMode(mode);
-      await setUserMode(mode);
-      // Mode server action handles redirect
+      const result = await setUserMode(mode);
+      if (result && result.redirectTo) {
+        router.push(result.redirectTo);
+      }
     } catch (error) {
       console.error("Failed to set mode:", error);
       setLoadingMode(null);
