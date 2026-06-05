@@ -28,6 +28,7 @@ interface LegacyState {
   setError: (error: string | null) => void;
   setLastSynced: (lastSynced: string) => void;
   refreshData: () => Promise<void>;
+  addConversation: (conv: LegacyConversation) => void;
 }
 
 export const useLegacyStore = create<LegacyState>((set) => ({
@@ -84,5 +85,7 @@ export const useLegacyStore = create<LegacyState>((set) => ({
     } finally {
       set({ isLoading: false });
     }
-  }
+  },
+  
+  addConversation: (conv) => set((state) => ({ conversations: [...state.conversations, conv] }))
 }));

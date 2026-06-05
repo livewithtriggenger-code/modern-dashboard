@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useLegacyStore } from "@/legacy/store/legacy-store";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LegacyBadge } from "@/legacy/components/ui/LegacyBadge";
-import { LegacyCard } from "@/legacy/components/ui/LegacyCard";
 import { 
   Search, Bot, MessageSquare, Phone, Mail, Send, Brain, Zap, 
   Calendar, Sparkles, Activity, CheckCircle2, ChevronRight, 
@@ -14,7 +13,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 
 export default function LegacyConversationsPage() {
-  const { leads, conversations, memories, refreshData, settings } = useLegacyStore();
+  const { leads, conversations, memories, refreshData, settings, addConversation } = useLegacyStore();
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   
   const [aiInsights, setAiInsights] = useState<{ signal: string, opportunity: string, actionTitle: string, actionDesc: string } | null>(null);
@@ -168,6 +167,18 @@ ${leadMems || 'None'}`;
     const messageText = inputText.trim();
     setInputText('');
 
+    // Optimistic Update
+    const tempMsg = {
+      id: Date.now().toString(),
+      leadId: activeLeadId,
+      message: messageText,
+      sender: 'owner',
+      timestamp: new Date().toISOString()
+    };
+    
+    // Instantly append to the UI
+    addConversation(tempMsg);
+
     try {
       setIsSending(true);
       const res = await fetch('/api/legacy/messages/send', {
@@ -184,8 +195,8 @@ ${leadMems || 'None'}`;
         throw new Error("Message could not be delivered.");
       }
       
-      // Refresh to fetch the new message from the sheet
-      await refreshData();
+      // Refresh to sync the actual sheet ID, but UI is already updated
+      refreshData();
       
     } catch (err: any) {
       alert("Message could not be delivered.");
@@ -219,30 +230,32 @@ ${leadMems || 'None'}`;
   };
 
   return (
-    <div className="flex h-[calc(100vh-56px)] w-full bg-slate-950 overflow-hidden">
+    // We use absolute positioning tied to the viewport to escape the layout.tsx container
+    // and eliminate the "gap between CRM sidebar and conversation list" bug
+    <div style={{ position: 'fixed', top: '64px', left: '256px', right: 0, bottom: 0 }} className="flex bg-[#0B0F19] overflow-hidden z-[5]">
       
       {/* LEFT COLUMN — Dark Dashboard Style */}
-      <div className="w-[360px] shrink-0 flex flex-col bg-slate-950 border-r border-slate-800/60 z-10">
+      <div className="w-[360px] shrink-0 flex flex-col bg-[#0B0F19] border-r border-slate-800/60 z-10">
 
         {/* Search Bar */}
-        <div className="p-4 bg-slate-950 shrink-0 border-b border-slate-800/60">
-          <div className="flex items-center bg-slate-900/80 border border-slate-800 rounded-xl px-3 h-10 gap-2.5 transition-colors focus-within:border-indigo-500/50 focus-within:bg-slate-900 shadow-inner">
+        <div className="p-4 shrink-0 border-b border-slate-800/60 bg-[#0B0F19]">
+          <div className="flex items-center bg-[#131B2C] border border-slate-800 rounded-xl px-3 h-10 gap-2.5 transition-colors focus-within:border-indigo-500/50 shadow-inner">
             <Search className="h-4 w-4 text-slate-500 shrink-0" />
             <input
               type="text"
               placeholder="Search leads, companies..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent border-none outline-none text-[14px] text-slate-200 placeholder:text-slate-500"
+              className="flex-1 bg-transparent border-none outline-none text-[14px] text-slate-200 placeholder:text-slate-500 w-full"
             />
           </div>
         </div>
 
         {/* Lead List */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
           {filteredLeads.length === 0 ? (
             <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800">
+              <div className="h-12 w-12 rounded-full bg-[#131B2C] flex items-center justify-center border border-slate-800">
                 <MessageSquare className="h-5 w-5 text-slate-600" />
               </div>
               <p className="text-[14px] font-medium">No conversations found</p>
@@ -262,7 +275,7 @@ ${leadMems || 'None'}`;
                   key={leadId}
                   onClick={() => setSelectedLeadId(leadId)}
                   className={`w-full text-left flex items-center gap-3.5 px-4 py-3.5 border-b border-slate-800/40 transition-colors ${
-                    isActive ? 'bg-slate-900' : 'hover:bg-slate-900/50'
+                    isActive ? 'bg-[#131B2C]' : 'hover:bg-slate-900/50'
                   }`}
                 >
                   <Avatar className="h-11 w-11 shrink-0 border border-slate-700/50 shadow-sm bg-indigo-600">
@@ -299,10 +312,10 @@ ${leadMems || 'None'}`;
       </div>
 
       {/* MIDDLE COLUMN: Chat Feed Workspace */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#0f172a] relative border-r border-slate-800/60 z-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#0B0F19] relative border-r border-slate-800/60 overflow-hidden z-0">
         
         {/* Chat Header */}
-        <div className="h-[64px] shrink-0 px-5 flex items-center justify-between bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 z-10 shadow-sm">
+        <div className="h-[64px] shrink-0 px-5 flex items-center justify-between bg-[#131B2C]/95 backdrop-blur-xl border-b border-slate-800/60 z-10 shadow-sm w-full">
           <div className="flex items-center gap-3.5">
             <Avatar className="h-10 w-10 shrink-0 border border-slate-700/50 bg-indigo-600 shadow-sm">
                <AvatarFallback className="bg-indigo-600 text-white font-semibold">{getInitials(activeName)}</AvatarFallback>
@@ -310,7 +323,7 @@ ${leadMems || 'None'}`;
             <div className="flex flex-col">
               <h2 className="text-[15px] font-semibold text-slate-100 leading-tight">{activeName || 'Select a lead'}</h2>
               <span className="text-[12px] font-medium text-slate-500 mt-0.5">
-                Score <span className="text-emerald-400">{activeLead?.leadScore || '--'}</span>
+                Score <span className="text-amber-500 font-bold">{activeLead?.leadScore || '--'}</span>
               </span>
             </div>
           </div>
@@ -322,9 +335,10 @@ ${leadMems || 'None'}`;
         </div>
 
         {/* Chat Feed */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar relative p-4 sm:p-6 bg-[#0f172a]">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar relative p-4 sm:p-6 w-full bg-[#0B0F19] 
+          bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2280%22%20height%3D%2280%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%220.4%22%20stroke-opacity%3D%220.02%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%228%22%2F%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%2260%22%20r%3D%228%22%2F%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%2220%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2260%22%20r%3D%224%22%2F%3E%3Cline%20x1%3D%220%22%20y1%3D%2240%22%20x2%3D%2280%22%20y2%3D%2240%22%2F%3E%3Cline%20x1%3D%2240%22%20y1%3D%220%22%20x2%3D%2240%22%20y2%3D%2280%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E')]">
           {!activeLeadId ? (
-            <div className="h-full flex flex-col items-center justify-center">
+            <div className="h-full flex flex-col items-center justify-center w-full">
               <div className="h-16 w-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mb-4 shadow-lg shadow-black/20">
                  <MessageSquare className="h-7 w-7 text-slate-500" />
               </div>
@@ -332,7 +346,7 @@ ${leadMems || 'None'}`;
               <p className="text-sm text-slate-500 mt-2">Select a lead from the sidebar to view history.</p>
             </div>
           ) : activeConversations.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center">
+            <div className="h-full flex flex-col items-center justify-center w-full">
               <div className="h-16 w-16 rounded-full bg-indigo-900/30 border border-indigo-500/30 flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/10">
                  <Bot className="h-7 w-7 text-indigo-400" />
               </div>
@@ -340,9 +354,9 @@ ${leadMems || 'None'}`;
               <p className="text-sm text-slate-500 mt-2">Ready to engage when the lead responds.</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-5 max-w-4xl mx-auto w-full">
+            <div className="flex flex-col max-w-4xl mx-auto w-full px-2 sm:px-[5%] pb-8">
               {/* Timeline Top Marker */}
-              <div className="flex justify-center mb-2">
+              <div className="flex justify-center mb-6 mt-4">
                 <span className="bg-slate-900/80 border border-slate-800 text-slate-400 text-[11px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full shadow-sm backdrop-blur-md">
                   Beginning of History
                 </span>
@@ -355,38 +369,44 @@ ${leadMems || 'None'}`;
                 const isOutgoing = isAI || isOwner;
 
                 return (
-                  <div key={conv.id || idx} className="flex flex-col w-full group">
+                  <div key={conv.id || idx} className="flex flex-col w-full group mb-2 overflow-hidden">
                     {!isOutgoing ? (
-                      // Incoming (Lead) Bubble
-                      <div className="flex justify-start w-full pr-12 sm:pr-24">
-                        <div className="relative bg-slate-800 border border-slate-700/60 rounded-2xl rounded-tl-sm px-4 pt-3 pb-7 shadow-sm max-w-[85%] sm:max-w-[75%]">
-                          <p className="text-[12.5px] font-bold text-indigo-400 mb-1 leading-none">{activeName}</p>
-                          <p className="text-[14.5px] leading-[1.5] text-slate-200 whitespace-pre-wrap">{conv.message}</p>
-                          <span className="absolute right-3 bottom-2 text-[10.5px] font-medium text-slate-500">{msgTime}</span>
+                      // Incoming (Lead) Bubble - Slate Theme
+                      <div className="flex justify-start w-full pr-12 sm:pr-24 my-1">
+                        <div className="relative bg-[#1e293b] border border-slate-700/60 rounded-xl rounded-tl-sm px-3.5 pt-2.5 pb-[26px] shadow-sm max-w-[85%] break-words">
+                          <svg style={{ position: 'absolute', top: '-1px', left: '-8px' }} width="9" height="14" viewBox="0 0 9 14">
+                            <path d="M9 0 L0 0 L0 14 Q4 7 9 0 Z" fill="#1e293b" />
+                          </svg>
+                          <p className="text-[13px] font-semibold text-indigo-400 mb-[5px] leading-none">{activeName}</p>
+                          <p className="text-[14.5px] leading-[1.4] text-slate-200 break-words whitespace-pre-wrap max-w-full overflow-hidden m-0">{conv.message}</p>
+                          <span className="absolute right-3 bottom-1.5 text-[10.5px] font-medium text-slate-400/80 leading-none">{msgTime}</span>
                         </div>
                       </div>
                     ) : (
-                      // Outgoing (Owner/AI) Bubble
-                      <div className="flex justify-end w-full pl-12 sm:pl-24">
-                        <div className={`relative border rounded-2xl rounded-tr-sm px-4 pt-3 pb-7 shadow-sm max-w-[85%] sm:max-w-[75%] ${
+                      // Outgoing Bubble
+                      <div className="flex justify-end w-full pl-12 sm:pl-24 my-1">
+                        <div className={`relative border rounded-xl rounded-tr-sm px-3.5 pt-2.5 pb-[26px] shadow-sm max-w-[85%] break-words ${
                           isOwner 
-                            ? 'bg-indigo-600/20 border-indigo-500/30' 
-                            : 'bg-emerald-900/20 border-emerald-500/30'
+                            ? 'bg-[#312e81] border-indigo-700/50' 
+                            : 'bg-[#064e3b] border-emerald-700/50'
                         }`}>
-                          <p className={`text-[12.5px] font-bold mb-1 flex items-center gap-1.5 leading-none ${
-                            isOwner ? 'text-indigo-400' : 'text-emerald-400'
+                          <svg style={{ position: 'absolute', top: '-1px', right: '-8px' }} width="9" height="14" viewBox="0 0 9 14">
+                            <path d="M0 0 L9 0 L9 14 Q5 7 0 0 Z" fill={isOwner ? '#312e81' : '#064e3b'} />
+                          </svg>
+                          <p className={`text-[13px] font-semibold mb-[5px] flex items-center gap-1.5 leading-none ${
+                            isOwner ? 'text-indigo-300' : 'text-emerald-300'
                           }`}>
-                            {isOwner ? 'You' : 'NexusAI Automation'}
-                            {isOwner ? <MessageSquare className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}
+                            {isOwner ? 'Workspace Owner' : 'NexusAI Automation'}
+                            {isOwner ? <MessageSquare className="h-2.5 w-2.5" /> : <Sparkles className="h-2.5 w-2.5" />}
                           </p>
-                          <p className={`text-[14.5px] leading-[1.5] whitespace-pre-wrap ${
-                            isOwner ? 'text-indigo-100' : 'text-emerald-100'
+                          <p className={`text-[14.5px] leading-[1.4] break-words whitespace-pre-wrap max-w-full overflow-hidden m-0 ${
+                            isOwner ? 'text-indigo-50' : 'text-emerald-50'
                           }`}>
                             {conv.message}
                           </p>
-                          <div className="absolute right-3 bottom-2 flex items-center gap-1.5">
-                            <span className="text-[10.5px] font-medium text-slate-400 opacity-70">{msgTime}</span>
-                            <CheckCheck className={`h-3.5 w-3.5 ${isOwner ? 'text-indigo-500' : 'text-emerald-500'}`} />
+                          <div className="absolute right-3 bottom-1.5 flex items-center gap-1.5">
+                            <span className="text-[10.5px] font-medium text-white/50 leading-none">{msgTime}</span>
+                            <CheckCheck className={`h-[14px] w-[14px] ${isOwner ? 'text-indigo-300' : 'text-emerald-300'}`} />
                           </div>
                         </div>
                       </div>
@@ -401,19 +421,19 @@ ${leadMems || 'None'}`;
 
         {/* Composer Bar (EXACT V1 PARITY) */}
         {activeLeadId && (
-          <div className="bg-slate-950 border-t border-slate-800/80 p-4 shrink-0 shadow-[0_-4px_12px_rgba(0,0,0,0.1)] relative z-20">
+          <div className="bg-[#131B2C] border-t border-slate-800/80 p-4 shrink-0 shadow-[0_-4px_12px_rgba(0,0,0,0.1)] relative z-20 w-full overflow-hidden">
             {/* Mode Toggle Header */}
             <div className="flex items-center justify-between mb-3 px-1">
               <div className="flex items-center gap-2">
                 {takeoverActive ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                    <span className="text-[12px] font-bold text-emerald-500 tracking-wide">MANUAL MODE — You are replying</span>
+                    <span className="text-[12px] font-bold text-emerald-500 tracking-wide">Manual Mode — You are replying</span>
                   </>
                 ) : (
                   <>
                     <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
-                    <span className="text-[12px] font-bold text-indigo-400 tracking-wide">AI MODE — Automation handling conversation</span>
+                    <span className="text-[12px] font-bold text-indigo-400 tracking-wide">AI Mode — Automation handling conversation</span>
                   </>
                 )}
               </div>
@@ -441,11 +461,11 @@ ${leadMems || 'None'}`;
             </div>
 
             {/* Input Row */}
-            <div className="flex items-end gap-3">
-              <div className={`flex-1 rounded-xl overflow-hidden transition-colors border ${
+            <div className="flex items-end gap-3 w-full">
+              <div className={`flex-1 rounded-xl overflow-hidden transition-colors border w-full ${
                 takeoverActive 
                   ? 'bg-slate-900 border-emerald-500/40 shadow-[0_0_0_1px_rgba(16,185,129,0.1)] focus-within:border-emerald-500 focus-within:shadow-[0_0_0_1px_rgba(16,185,129,0.2)]' 
-                  : 'bg-slate-900/50 border-slate-800'
+                  : 'bg-[#0B0F19] border-slate-800'
               }`}>
                 <textarea
                   value={inputText}
@@ -453,7 +473,7 @@ ${leadMems || 'None'}`;
                   placeholder={takeoverActive ? "Type your message..." : "Input locked. Automation is analyzing and responding."}
                   disabled={!takeoverActive || isSending}
                   rows={1}
-                  className={`w-full bg-transparent border-none text-[15px] leading-relaxed p-3.5 resize-none max-h-[140px] outline-none font-medium placeholder:font-normal ${
+                  className={`w-full bg-transparent border-none text-[15px] leading-relaxed p-3.5 resize-none max-h-[140px] outline-none font-medium placeholder:font-normal box-border ${
                     takeoverActive ? 'text-slate-200 placeholder:text-slate-500' : 'text-slate-600 placeholder:text-slate-600 cursor-not-allowed'
                   }`}
                   onKeyDown={(e) => {
@@ -485,31 +505,39 @@ ${leadMems || 'None'}`;
       </div>
 
       {/* RIGHT COLUMN: Lead Intelligence Center */}
-      <div className="w-[420px] shrink-0 flex flex-col bg-slate-950 overflow-y-auto custom-scrollbar z-10">
+      <div className="w-[420px] shrink-0 flex flex-col bg-[#0B0F19] overflow-y-auto overflow-x-hidden custom-scrollbar z-10">
         {activeLeadId ? (
           <div className="p-6 space-y-6">
             
-            {/* 1. Profile Card */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-[20px] p-7 shadow-sm relative overflow-hidden">
+            {/* 1. Profile Card with 4 metrics like V1 */}
+            <div className="bg-[#131B2C] border border-slate-800/80 rounded-[20px] p-7 shadow-sm relative overflow-hidden">
               <div className="absolute top-0 right-0 p-3 opacity-[0.03]">
                  <Activity className="h-32 w-32 text-indigo-500" />
               </div>
               <div className="flex flex-col items-center text-center relative z-10">
-                <Avatar className="h-24 w-24 shrink-0 border-2 border-indigo-500/30 bg-indigo-600 shadow-lg shadow-indigo-900/20 mb-5">
-                   <AvatarFallback className="bg-indigo-600 text-white font-bold text-2xl">{getInitials(activeName)}</AvatarFallback>
+                <Avatar className="h-24 w-24 shrink-0 border-2 border-indigo-500/30 bg-indigo-600 shadow-lg shadow-indigo-900/20 mb-5 text-[28px] font-bold">
+                   <AvatarFallback className="bg-indigo-600 text-white font-bold">{getInitials(activeName)}</AvatarFallback>
                 </Avatar>
                 <h3 className="text-[22px] font-bold text-slate-100 tracking-tight">{activeName}</h3>
                 <p className="text-[14px] text-slate-400 font-medium mt-1">{activeLead?.email || 'No email provided'}</p>
               </div>
               
               <div className="grid grid-cols-2 gap-4 mt-8 relative z-10">
-                <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-1.5 shadow-inner">
+                <div className="bg-indigo-900/20 border border-indigo-500/20 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-1.5 shadow-inner transition-colors hover:bg-indigo-900/30">
                   <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest">Company</span>
-                  <span className="text-[14px] font-bold text-slate-200 truncate w-full">{activeLead?.businessType || 'Independent'}</span>
+                  <span className="text-[14px] font-bold text-indigo-100 truncate w-full">{activeLead?.businessType || 'Independent'}</span>
                 </div>
-                <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-1.5 shadow-inner">
-                  <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest">Source</span>
-                  <span className="text-[14px] font-bold text-slate-200 capitalize truncate w-full">{activeLead?.source || 'Direct'}</span>
+                <div className="bg-violet-900/20 border border-violet-500/20 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-1.5 shadow-inner transition-colors hover:bg-violet-900/30">
+                  <span className="text-[11px] font-bold text-violet-400 uppercase tracking-widest">Source</span>
+                  <span className="text-[14px] font-bold text-violet-100 capitalize truncate w-full">{activeLead?.source || 'Direct'}</span>
+                </div>
+                <div className="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-1.5 shadow-inner transition-colors hover:bg-emerald-900/30">
+                  <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest">Status</span>
+                  <div className="flex"><LegacyBadge status={activeLead?.status || 'new'} /></div>
+                </div>
+                <div className="bg-amber-900/20 border border-amber-500/20 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-1.5 shadow-inner transition-colors hover:bg-amber-900/30">
+                  <span className="text-[11px] font-bold text-amber-500 uppercase tracking-widest">Score</span>
+                  <span className="text-[18px] font-black text-amber-500 tracking-tight leading-none">{activeLead?.leadScore || '--'}</span>
                 </div>
               </div>
             </div>
@@ -527,7 +555,7 @@ ${leadMems || 'None'}`;
               </Link>
               
               <Link href={`/legacy/memory`} className="block w-full">
-                <div className="flex items-center justify-between h-[56px] px-5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-[16px] transition-all group cursor-pointer hover:-translate-y-0.5 shadow-sm">
+                <div className="flex items-center justify-between h-[56px] px-5 bg-[#131B2C] hover:bg-slate-800 border border-slate-800/80 rounded-[16px] transition-all group cursor-pointer hover:-translate-y-0.5 shadow-sm">
                   <div className="flex items-center gap-3">
                      <Brain className="h-5 w-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
                      <span className="text-[14.5px] font-medium text-slate-300 group-hover:text-slate-100 transition-colors">View AI Memory</span>
@@ -537,7 +565,7 @@ ${leadMems || 'None'}`;
               </Link>
 
               <Link href={`/legacy/appointments`} className="block w-full">
-                <div className="flex items-center justify-between h-[56px] px-5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-[16px] transition-all group cursor-pointer hover:-translate-y-0.5 shadow-sm">
+                <div className="flex items-center justify-between h-[56px] px-5 bg-[#131B2C] hover:bg-slate-800 border border-slate-800/80 rounded-[16px] transition-all group cursor-pointer hover:-translate-y-0.5 shadow-sm">
                   <div className="flex items-center gap-3">
                      <Calendar className="h-5 w-5 text-slate-400 group-hover:text-emerald-400 transition-colors" />
                      <span className="text-[14.5px] font-medium text-slate-300 group-hover:text-slate-100 transition-colors">Schedule Appointment</span>
@@ -548,8 +576,8 @@ ${leadMems || 'None'}`;
             </div>
 
             {/* 3. Lead Intelligence Core */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-[20px] overflow-hidden shadow-sm flex flex-col">
-              <div className="py-5 px-6 border-b border-slate-800/80 bg-slate-900">
+            <div className="bg-[#131B2C] border border-slate-800/80 rounded-[20px] overflow-hidden shadow-sm flex flex-col">
+              <div className="py-5 px-6 border-b border-slate-800/80 bg-[#131B2C]">
                 <div className="flex items-center gap-2.5 mb-1.5">
                   <Brain className="h-5 w-5 text-indigo-400" />
                   <h3 className="text-[16px] font-bold text-slate-100 tracking-tight">Lead Intelligence</h3>
@@ -560,7 +588,8 @@ ${leadMems || 'None'}`;
               </div>
               
               <div className="p-6 flex flex-col gap-6">
-                <div className="flex gap-6 items-center">
+                {/* Horizontal split matching V1: Circle left, cards right */}
+                <div className="flex flex-row gap-6 items-center">
                   {/* Circular Dial */}
                   <div className="flex-shrink-0 flex flex-col items-center justify-center p-2">
                     <div className="relative w-24 h-24 flex items-center justify-center mb-3 drop-shadow-xl">
@@ -584,10 +613,10 @@ ${leadMems || 'None'}`;
                   </div>
 
                   {/* Badges */}
-                  <div className="flex-grow flex flex-col gap-3 w-full">
+                  <div className="flex-grow flex flex-col gap-3.5 w-full">
                     
                     {/* Qualification */}
-                    <div className="flex items-center gap-3.5 p-3.5 rounded-[16px] border border-slate-800 bg-slate-800/40 shadow-inner">
+                    <div className="flex items-center gap-3.5 p-3.5 rounded-[16px] border border-slate-800 bg-[#0B0F19]/50 shadow-inner">
                       <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
                         activeLead?.leadScore >= 8 ? "bg-emerald-900/50" : activeLead?.leadScore >= 5 ? "bg-amber-900/50" : "bg-rose-900/50"
                       }`}>
@@ -595,16 +624,23 @@ ${leadMems || 'None'}`;
                           activeLead?.leadScore >= 8 ? "text-emerald-400" : activeLead?.leadScore >= 5 ? "text-amber-400" : "text-rose-400"
                         }`} />
                       </div>
-                      <div className="flex flex-col gap-1 min-w-0">
+                      <div className="flex flex-col gap-1 min-w-0 flex-1">
                         <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Qualification</span>
                         <p className="text-[13px] text-slate-300 font-medium leading-snug truncate">
                           {getQualificationLevel(activeLead?.leadScore || 0).desc}
                         </p>
                       </div>
+                      <div className="flex-shrink-0 text-right pr-2">
+                        <span className={`text-[13px] font-bold ${
+                          activeLead?.leadScore >= 8 ? "text-emerald-400" : activeLead?.leadScore >= 5 ? "text-amber-400" : "text-rose-400"
+                        }`}>
+                          {getQualificationLevel(activeLead?.leadScore || 0).label}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Intent */}
-                    <div className="flex items-center gap-3.5 p-3.5 rounded-[16px] border border-slate-800 bg-slate-800/40 shadow-inner">
+                    <div className="flex items-center gap-3.5 p-3.5 rounded-[16px] border border-slate-800 bg-[#0B0F19]/50 shadow-inner">
                       <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
                         activeLead?.intent?.toLowerCase() === "high" ? "bg-orange-900/50" : "bg-blue-900/50"
                       }`}>
@@ -612,11 +648,18 @@ ${leadMems || 'None'}`;
                           activeLead?.intent?.toLowerCase() === "high" ? "text-orange-400" : "text-blue-400"
                         }`} />
                       </div>
-                      <div className="flex flex-col gap-1 min-w-0">
+                      <div className="flex flex-col gap-1 min-w-0 flex-1">
                         <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Intent Level</span>
                         <p className="text-[13px] text-slate-300 font-medium leading-snug truncate capitalize">
-                          {activeLead?.intent || "Medium"}
+                          {activeLead?.intent?.toLowerCase() === "high" ? "Active engagement." : "Passive consumption."}
                         </p>
+                      </div>
+                      <div className="flex-shrink-0 text-right pr-2">
+                        <span className={`text-[13px] font-bold capitalize ${
+                          activeLead?.intent?.toLowerCase() === "high" ? "text-orange-400" : "text-blue-400"
+                        }`}>
+                          {activeLead?.intent || "Medium"}
+                        </span>
                       </div>
                     </div>
 
@@ -625,58 +668,58 @@ ${leadMems || 'None'}`;
               </div>
             </div>
 
-            {/* 4. AI Insights & Actions */}
-            <div className="space-y-4">
-              <h4 className="text-[12px] font-bold text-slate-500 uppercase tracking-widest px-2">
+            {/* 4. AI Insights & Actions Styled Exactly Like V1 */}
+            <div className="space-y-4 pb-12">
+              <h4 className="text-[12px] font-bold text-slate-500 uppercase tracking-widest px-1">
                 Insights & Actions
               </h4>
               
               <div className="flex flex-col gap-4">
-                {/* Key Signal */}
-                <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-[20px] shadow-sm relative overflow-hidden group hover:border-slate-700 transition-colors">
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 rounded-l-[20px]"></div>
-                  <div className="flex items-center gap-2 mb-2 pl-2">
-                    <span className="text-[14px] font-bold text-slate-200 tracking-wide">Key Signal</span>
+                {/* Key Signal Card */}
+                <div className="p-6 bg-gradient-to-br from-indigo-900/30 to-[#131B2C] border border-indigo-500/20 rounded-[20px] shadow-sm transition-all hover:shadow-md hover:border-indigo-500/40 hover:-translate-y-0.5">
+                  <div className="flex items-center gap-2 mb-3" style={{ borderLeft: '3px solid #6366f1', paddingLeft: '10px' }}>
+                    <span className="text-[14px] font-bold text-slate-100 tracking-tight">Key Signal</span>
                     {isGeneratingInsights && <Activity className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />}
                   </div>
-                  <p className={`text-[13.5px] font-medium leading-relaxed pl-2 ${isGeneratingInsights ? "text-slate-600 animate-pulse" : "text-slate-400"}`}>
+                  <p className={`text-[14px] font-medium leading-relaxed ${isGeneratingInsights ? "text-slate-500 animate-pulse" : "text-slate-300"}`}>
                     {aiInsights?.signal || "Analyzing lead data..."}
                   </p>
                 </div>
 
-                {/* Opportunity */}
-                <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-[20px] shadow-sm relative overflow-hidden group hover:border-slate-700 transition-colors">
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-l-[20px]"></div>
-                  <div className="flex items-center gap-2 mb-2 pl-2">
-                    <span className="text-[14px] font-bold text-slate-200 tracking-wide">Opportunity</span>
+                {/* Opportunity Card */}
+                <div className="p-6 bg-gradient-to-br from-emerald-900/30 to-[#131B2C] border border-emerald-500/20 rounded-[20px] shadow-sm transition-all hover:shadow-md hover:border-emerald-500/40 hover:-translate-y-0.5">
+                  <div className="flex items-center gap-2 mb-3" style={{ borderLeft: '3px solid #10b981', paddingLeft: '10px' }}>
+                    <span className="text-[14px] font-bold text-slate-100 tracking-tight">Opportunity</span>
                     {isGeneratingInsights && <Activity className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />}
                   </div>
-                  <p className={`text-[13.5px] font-medium leading-relaxed pl-2 ${isGeneratingInsights ? "text-slate-600 animate-pulse" : "text-slate-400"}`}>
-                    {aiInsights?.opportunity || "Evaluating potential..."}
-                  </p>
+                  <div className="space-y-1.5">
+                    <p className={`text-[14px] font-medium leading-relaxed ${isGeneratingInsights ? "text-slate-500 animate-pulse" : "text-slate-300"}`}>
+                      {aiInsights?.opportunity || "Evaluating potential..."}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Recommended Action */}
-                <div className="p-6 bg-indigo-900/20 border border-indigo-500/20 rounded-[20px] shadow-sm relative overflow-hidden group">
-                  <div className="absolute -top-6 -right-6 p-3 opacity-10">
-                    <Zap className="h-32 w-32 text-indigo-400" />
+                {/* Recommended Action Card */}
+                <div className="p-6 bg-gradient-to-br from-blue-900/30 to-[#131B2C] border border-blue-500/20 rounded-[20px] shadow-sm relative overflow-hidden transition-all hover:shadow-md hover:border-blue-500/40 hover:-translate-y-0.5">
+                  <div className="absolute -top-4 -right-4 p-3 opacity-[0.05]">
+                    <Zap className="h-28 w-28 text-blue-400" />
                   </div>
                   <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-4" style={{ borderLeft: '3px solid #818cf8', paddingLeft: '12px' }}>
-                      <span className="text-[14px] font-bold text-indigo-300 tracking-wide uppercase">Recommended Action</span>
-                      {isGeneratingInsights && <Activity className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />}
+                    <div className="flex items-center gap-2 mb-5" style={{ borderLeft: '3px solid #3b82f6', paddingLeft: '10px' }}>
+                      <span className="text-[14px] font-bold text-blue-400 tracking-tight">Recommended Action</span>
+                      {isGeneratingInsights && <Activity className="h-3.5 w-3.5 text-blue-400 animate-pulse" />}
                     </div>
                     
-                    <div className="mb-6 pl-3">
-                      <h5 className="text-[16px] font-bold text-slate-100 mb-2">
+                    <div className="mb-6">
+                      <h5 className="text-[15px] font-bold text-slate-100 mb-1.5">
                         {aiInsights?.actionTitle || "Analyzing actions..."}
                       </h5>
-                      <p className={`text-[13.5px] font-medium leading-relaxed ${isGeneratingInsights ? "text-indigo-400/40 animate-pulse" : "text-indigo-200/70"}`}>
+                      <p className={`text-[13px] font-medium leading-relaxed ${isGeneratingInsights ? "text-slate-500 animate-pulse" : "text-slate-400"}`}>
                         {aiInsights?.actionDesc || "Processing optimal next steps..."}
                       </p>
                     </div>
                     
-                    <button className="w-full h-12 text-[14px] font-bold bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl shadow-md shadow-indigo-900/20 transition-all hover:-translate-y-0.5">
+                    <button className="w-full h-11 text-[13.5px] font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-[12px] shadow-sm transition-all hover:shadow-md">
                       Execute Action
                     </button>
                   </div>
@@ -686,7 +729,7 @@ ${leadMems || 'None'}`;
 
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center p-8 text-center text-slate-500">
+          <div className="h-full flex flex-col items-center justify-center p-8 text-center text-slate-500 w-full">
             <Brain className="h-16 w-16 text-slate-800 mb-4" />
             <h3 className="text-xl font-semibold text-slate-400">Intelligence Standby</h3>
             <p className="text-sm mt-2 max-w-[250px]">Select a conversation to generate real-time AI insights, health scores, and next best actions.</p>
