@@ -31,7 +31,8 @@ import {
   MessageSquare,
   Minus,
   SlidersHorizontal,
-  RefreshCw
+  RefreshCw,
+  Layers
 } from "lucide-react";
 
 // ── Types & Constants ────────────────────────────────────────────────────────
