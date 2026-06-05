@@ -56,7 +56,13 @@ export const useLegacyStore = create<LegacyState>((set) => ({
     try {
       const response = await fetch('/api/legacy/refresh');
       if (!response.ok) {
-        throw new Error('Failed to fetch data from sheets');
+        let errorMsg = 'Failed to fetch data from sheets';
+        try {
+          const errData = await response.json();
+          if (errData.error) errorMsg = errData.error;
+          if (errData.diagnostics) console.error("Server Diagnostics:", errData.diagnostics);
+        } catch(e) {}
+        throw new Error(errorMsg);
       }
       const data = await response.json();
       
