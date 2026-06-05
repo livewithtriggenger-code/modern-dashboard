@@ -16,32 +16,39 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${origin}${next}`);
       }
 
-      // Check mode for default redirect
-      const { data: membership } = await supabase
-        .from("workspace_members")
-        .select("workspace_id")
+      // 1. Fetch user preferences
+      let { data: preferences } = await supabase
+        .from("user_preferences")
+        .select("mode")
         .eq("user_id", session.user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
         .single();
 
-      if (membership) {
-        const { data: settings } = await supabase
-          .from("workspace_settings")
+      // 2. Auto-bootstrap if missing
+      let isNewUser = false;
+      if (!preferences) {
+        isNewUser = true;
+        const { data: newPrefs } = await supabase
+          .from("user_preferences")
+          .insert({ user_id: session.user.id, mode: 'v2', legacy_settings: {} })
           .select("mode")
-          .eq("workspace_id", membership.workspace_id)
           .single();
+        preferences = newPrefs;
+      }
 
-        if (settings) {
-          if (settings.mode === 'legacy') {
-            return NextResponse.redirect(`${origin}/legacy/dashboard`);
-          } else if (settings.mode === 'v2') {
-            return NextResponse.redirect(`${origin}/dashboard`);
-          }
+      // 3. Route based on mode
+      if (preferences) {
+        // If it's a completely fresh user, force them through mode selection first
+        if (isNewUser) {
+          return NextResponse.redirect(`${origin}/select-mode`);
+        }
+
+        if (preferences.mode === 'legacy') {
+          return NextResponse.redirect(`${origin}/legacy/dashboard`);
+        } else if (preferences.mode === 'v2') {
+          return NextResponse.redirect(`${origin}/dashboard`);
         }
       }
       
-      // If no mode is explicitly set or no workspace yet
       return NextResponse.redirect(`${origin}/select-mode`);
     }
   }

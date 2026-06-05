@@ -12,29 +12,17 @@ export default async function SelectModePage() {
   const user = await getAuthenticatedUser();
   const supabase = await createClient();
 
-  // Get user's primary workspace mode
-  const { data: membership } = await supabase
-    .from("workspace_members")
-    .select("workspace_id")
+  let currentMode = "none";
+  let currentWorkspaceId = ""; // No longer required for legacy, but kept for props
+
+  const { data: preferences } = await supabase
+    .from("user_preferences")
+    .select("mode")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
     .single();
 
-  let currentMode = "none";
-  let currentWorkspaceId = "";
-
-  if (membership) {
-    currentWorkspaceId = membership.workspace_id;
-    const { data: settings } = await supabase
-      .from("workspace_settings")
-      .select("mode")
-      .eq("workspace_id", membership.workspace_id)
-      .single();
-      
-    if (settings) {
-      currentMode = settings.mode || "none";
-    }
+  if (preferences) {
+    currentMode = preferences.mode || "none";
   }
 
   // If no mode is set, render the selection screen

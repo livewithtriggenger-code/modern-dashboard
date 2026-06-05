@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -9,33 +8,33 @@ export async function setUserMode(mode: "legacy" | "v2") {
   const user = await getAuthenticatedUser();
   const supabase = await createClient();
 
-  // Get user's primary workspace
-  const { data: membership } = await supabase
-    .from("workspace_members")
-    .select("workspace_id")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
-
-  if (!membership) {
-    throw new Error("No workspace found");
-  }
-
+  // Upsert into user_preferences to automatically bootstrap if it doesn't exist
   const { error } = await supabase
-    .from("workspace_settings")
-    .update({ mode })
-    .eq("workspace_id", membership.workspace_id);
+    .from("user_preferences")
+    .upsert(
+      { 
+        user_id: user.id, 
+        mode,
+        legacy_settings: {} // Ensure legacy_settings is not null if creating for the first time
+      },
+      { onConflict: 'user_id' }
+    );
 
   if (error) {
-    console.error("Error setting mode:", error);
-    throw new Error("Failed to set mode");
+    console.error("Error setting mode in user_preferences:", error);
+    return { success: false, error: "Failed to update mode in database", redirectTo: null };
   }
 
-  // Return path to redirect on the client to avoid NEXT_REDIRECT try/catch swallowing
-  if (mode === "legacy") {
-    return { success: true, redirectTo: "/legacy/dashboard" };
-  } else {
-    return { success: true, redirectTo: "/dashboard" };
-  }
+  // Revalidate all relevant paths to clear Next.js cache
+  revalidatePath("/select-mode");
+  revalidatePath("/");
+  revalidatePath("/legacy/dashboard");
+  revalidatePath("/dashboard");
+
+  // Return redirect destination — client handles actual navigation
+  return {
+    success: true,
+    redirectTo: mode === "legacy" ? "/legacy/dashboard" : "/dashboard"
+  };
 }
+

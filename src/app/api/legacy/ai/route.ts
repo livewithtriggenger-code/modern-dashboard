@@ -16,33 +16,21 @@ export async function POST(request: Request) {
     }
 
     // 1. Get Workspace
-    const { data: membership } = await supabase
-      .from('workspace_members')
-      .select('workspace_id')
+    // Fetch legacy settings from user_preferences
+    const { data: preferences } = await supabase
+      .from('user_preferences')
+      .select('legacy_settings')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
       .single();
 
-    if (!membership) {
-      return NextResponse.json({ error: 'No workspace found' }, { status: 403 });
-    }
+    const legacySettings = preferences?.legacy_settings;
 
-    // 2. Get Settings
-    const { data: settings } = await supabase
-      .from('workspace_settings')
-      .select('legacy_settings, openai_key')
-      .eq('workspace_id', membership.workspace_id)
-      .single();
-
-    if (!settings?.openai_key) {
+    if (!legacySettings?.openai_key) {
       return NextResponse.json({ error: 'OpenAI API key not configured in workspace settings' }, { status: 400 });
     }
-
-    const legacySettings = settings?.legacy_settings;
     
     // 3. Query OpenAI
-    const openai = new OpenAI({ apiKey: settings.openai_key });
+    const openai = new OpenAI({ apiKey: legacySettings.openai_key });
     
     const systemPrompt = `You are an AI sales assistant. ${leadName ? `You are talking to ${leadName}.` : ''} 
     Keep responses concise, helpful, and professional.

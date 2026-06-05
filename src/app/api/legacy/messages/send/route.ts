@@ -14,27 +14,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Conversation ID and message are required' }, { status: 400 });
     }
 
-    // 1. Get Workspace ID
-    const { data: membership } = await supabase
-      .from('workspace_members')
-      .select('workspace_id')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (!membership) {
-      return NextResponse.json({ error: 'No workspace found' }, { status: 403 });
-    }
-
-    // 2. Get Legacy Settings
-    const { data: settings } = await supabase
-      .from('workspace_settings')
+    // Fetch legacy settings from user_preferences
+    const { data: preferences } = await supabase
+      .from('user_preferences')
       .select('legacy_settings')
-      .eq('workspace_id', membership.workspace_id)
+      .eq('user_id', user.id)
       .single();
 
-    const legacySettings = settings?.legacy_settings;
+    const legacySettings = preferences?.legacy_settings;
     if (!legacySettings || !legacySettings.sheets_url) {
       return NextResponse.json({ error: 'Google Sheets URL not configured in legacy settings' }, { status: 400 });
     }

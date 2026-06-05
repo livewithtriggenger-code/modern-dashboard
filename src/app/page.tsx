@@ -10,25 +10,21 @@ export default async function Home() {
     redirect("/login");
   }
 
-  // Get user's primary workspace mode
-  const { data: membership } = await supabase
-    .from("workspace_members")
-    .select("workspace_id")
+  // Fetch user preferences
+  const { data: preferences } = await supabase
+    .from("user_preferences")
+    .select("mode")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
     .single();
 
-  if (membership) {
-    const { data: settings } = await supabase
-      .from("workspace_settings")
-      .select("mode")
-      .eq("workspace_id", membership.workspace_id)
-      .single();
-
-    if (settings?.mode === "legacy") {
+  if (preferences) {
+    if (preferences.mode === "legacy") {
       redirect("/legacy/dashboard");
+    } else if (preferences.mode === "v2") {
+      redirect("/dashboard");
     }
+  } else {
+    redirect("/select-mode");
   }
 
   redirect("/dashboard");

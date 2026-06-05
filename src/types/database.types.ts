@@ -9,6 +9,38 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      user_preferences: {
+        Row: {
+          user_id: string
+          mode: 'v2' | 'legacy'
+          legacy_settings: any
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          mode?: 'v2' | 'legacy'
+          legacy_settings?: any
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          mode?: 'v2' | 'legacy'
+          legacy_settings?: any
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       workspaces: {
         Row: {
           id: string
