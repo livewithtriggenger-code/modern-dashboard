@@ -28,15 +28,6 @@ export default async function SelectModePage() {
       .eq("workspace_id", membership.workspace_id)
       .single();
 
-    if (settings && settings.mode) {
-      if (settings.mode === "legacy") {
-        redirect("/legacy/dashboard");
-      } else if (settings.mode === "v2") {
-        redirect("/dashboard");
-      }
-    }
-  }
-
   // If no mode is set, render the selection screen
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-8">
@@ -55,7 +46,11 @@ export default async function SelectModePage() {
           </p>
         </div>
 
-        <ModeSelector />
+        <ModeSelector 
+          userId={user.id} 
+          workspaceId={membership?.workspace_id || ""} 
+          currentMode={settings?.mode || "none"} 
+        />
       </div>
     </div>
   );
