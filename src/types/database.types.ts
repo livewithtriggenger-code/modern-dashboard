@@ -218,6 +218,30 @@ export interface Database {
         Update: any
       }
     }
+    Functions: {
+      get_kpi_metrics: {
+        Args: {
+          p_workspace_id: string
+          p_start_date: string
+        }
+        Returns: {
+          total_leads: number
+          total_revenue: number
+          conversion_rate: number
+          active_conversations: number
+        }[]
+      }
+      get_funnel_stats: {
+        Args: {
+          p_workspace_id: string
+          p_start_date: string
+        }
+        Returns: {
+          status: string
+          count: number
+        }[]
+      }
+    }
   }
 }
 
