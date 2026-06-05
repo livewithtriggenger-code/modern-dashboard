@@ -12,7 +12,8 @@ import {
   Clock,
   Settings,
   LogOut,
-  Table
+  Table,
+  BarChart3
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -23,6 +24,7 @@ const navigation = [
   { name: "Conversations", href: "/legacy/conversations", icon: MessageSquare },
   { name: "Appointments", href: "/legacy/appointments", icon: Calendar },
   { name: "AI Memory", href: "/legacy/memory", icon: Brain },
+  { name: "Analytics", href: "/legacy/analytics", icon: BarChart3 },
   { name: "Settings", href: "/legacy/settings", icon: Settings },
 ];
 
