@@ -628,22 +628,24 @@ ${leadMems || 'None'}`;
                   <div className="flex-1 flex flex-col gap-3 min-w-0 pr-1">
                     
                     {/* Qualification */}
-                    <div className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-[#0B0F19]/50 shadow-inner w-full min-w-0">
-                      <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
-                        activeLead?.leadScore >= 8 ? "bg-emerald-900/50" : activeLead?.leadScore >= 5 ? "bg-amber-900/50" : "bg-rose-900/50"
-                      }`}>
-                        <CheckCircle2 className={`h-3.5 w-3.5 ${
-                          activeLead?.leadScore >= 8 ? "text-emerald-400" : activeLead?.leadScore >= 5 ? "text-amber-400" : "text-rose-400"
-                        }`} />
+                    <div className="flex flex-col gap-2 p-3.5 rounded-xl border border-slate-800 bg-[#0B0F19]/50 shadow-inner w-full min-w-0">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
+                          activeLead?.leadScore >= 8 ? "bg-emerald-900/50" : activeLead?.leadScore >= 5 ? "bg-amber-900/50" : "bg-rose-900/50"
+                        }`}>
+                          <CheckCircle2 className={`h-3.5 w-3.5 ${
+                            activeLead?.leadScore >= 8 ? "text-emerald-400" : activeLead?.leadScore >= 5 ? "text-amber-400" : "text-rose-400"
+                          }`} />
+                        </div>
+                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">Qualification</span>
+                          <p className="text-[12px] text-slate-300 font-medium truncate">
+                            {getQualificationLevel(activeLead?.leadScore || 0).desc}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">Qualification</span>
-                        <p className="text-[12px] text-slate-300 font-medium truncate">
-                          {getQualificationLevel(activeLead?.leadScore || 0).desc}
-                        </p>
-                      </div>
-                      <div className="flex-shrink-0 text-right pl-1">
-                        <span className={`text-[12px] font-bold ${
+                      <div className="mt-0.5 ml-9">
+                        <span className={`text-[13px] font-bold truncate block ${
                           activeLead?.leadScore >= 8 ? "text-emerald-400" : activeLead?.leadScore >= 5 ? "text-amber-400" : "text-rose-400"
                         }`}>
                           {getQualificationLevel(activeLead?.leadScore || 0).label}
@@ -652,22 +654,24 @@ ${leadMems || 'None'}`;
                     </div>
 
                     {/* Intent */}
-                    <div className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-[#0B0F19]/50 shadow-inner w-full min-w-0">
-                      <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
-                        activeLead?.intent?.toLowerCase() === "high" ? "bg-orange-900/50" : "bg-blue-900/50"
-                      }`}>
-                        <Activity className={`h-3.5 w-3.5 ${
-                          activeLead?.intent?.toLowerCase() === "high" ? "text-orange-400" : "text-blue-400"
-                        }`} />
+                    <div className="flex flex-col gap-2 p-3.5 rounded-xl border border-slate-800 bg-[#0B0F19]/50 shadow-inner w-full min-w-0">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
+                          activeLead?.intent?.toLowerCase() === "high" ? "bg-orange-900/50" : "bg-blue-900/50"
+                        }`}>
+                          <Activity className={`h-3.5 w-3.5 ${
+                            activeLead?.intent?.toLowerCase() === "high" ? "text-orange-400" : "text-blue-400"
+                          }`} />
+                        </div>
+                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">Intent Level</span>
+                          <p className="text-[12px] text-slate-300 font-medium truncate capitalize">
+                            {activeLead?.intent?.toLowerCase() === "high" ? "Active." : "Passive consumption."}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">Intent Level</span>
-                        <p className="text-[12px] text-slate-300 font-medium truncate capitalize">
-                          {activeLead?.intent?.toLowerCase() === "high" ? "Active." : "Passive."}
-                        </p>
-                      </div>
-                      <div className="flex-shrink-0 text-right pl-1">
-                        <span className={`text-[12px] font-bold capitalize ${
+                      <div className="mt-0.5 ml-9">
+                        <span className={`text-[13px] font-bold capitalize truncate block ${
                           activeLead?.intent?.toLowerCase() === "high" ? "text-orange-400" : "text-blue-400"
                         }`}>
                           {activeLead?.intent || "Medium"}
