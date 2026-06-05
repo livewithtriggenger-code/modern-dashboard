@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Loader2, AlertCircle } from "lucide-react"
 
-export type LegacyBadgeStatus = 'connected' | 'not_connected' | 'error' | 'testing' | 'active'
+export type LegacyBadgeStatus = 'connected' | 'not_connected' | 'error' | 'testing' | 'active' | string
 
 export function LegacyBadge({ status, labelOverride }: { status: LegacyBadgeStatus, labelOverride?: string }) {
   if (status === 'testing') {
@@ -33,11 +33,14 @@ export function LegacyBadge({ status, labelOverride }: { status: LegacyBadgeStat
       </div>
     );
   }
+
+  // Handle generic CRM Lead statuses
+  const displayStatus = labelOverride || status || 'Not Connected';
   
   return (
     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/50 border border-slate-700/60 shadow-sm backdrop-blur-md">
       <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{labelOverride || 'Not Connected'}</span>
+      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{displayStatus === 'not_connected' ? 'Not Connected' : displayStatus}</span>
     </div>
   );
 }
