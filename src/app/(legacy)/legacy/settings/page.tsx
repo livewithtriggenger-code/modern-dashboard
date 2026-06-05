@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { LegacyHealthCheck } from "@/legacy/components/settings/LegacyHealthCheck";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { saveLegacySettings, getLegacySettings } from "@/actions/legacy-settings";
 import { 
   testLegacySheets, 
@@ -15,18 +12,20 @@ import {
   testGrok 
 } from "@/actions/legacy-validation";
 import { 
-  Loader2, 
-  Eye, 
-  EyeOff, 
   Database, 
   Send, 
   Cpu, 
   CheckCircle2, 
   XCircle,
-  AlertCircle
+  Loader2
 } from "lucide-react";
 import { useLegacyStore } from "@/legacy/store/legacy-store";
 import { cn } from "@/lib/utils";
+
+import { LegacyCard } from "@/legacy/components/ui/LegacyCard";
+import { LegacyBadge, LegacyBadgeStatus } from "@/legacy/components/ui/LegacyBadge";
+import { LegacyButton } from "@/legacy/components/ui/LegacyButton";
+import { LegacyInput } from "@/legacy/components/ui/LegacyInput";
 
 export default function LegacySettingsPage() {
   const [mounted, setMounted] = useState(false);
@@ -46,10 +45,7 @@ export default function LegacySettingsPage() {
     grok_key: ""
   });
 
-  const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
-  const toggleKey = (key: string) => setShowKeys(prev => ({ ...prev, [key]: !prev[key] }));
-
-  const [status, setStatus] = useState<Record<string, 'connected' | 'not_connected' | 'error' | 'testing'>>({
+  const [status, setStatus] = useState<Record<string, LegacyBadgeStatus>>({
     sheets: 'not_connected',
     telegram: 'not_connected',
     openai: 'not_connected',
@@ -97,7 +93,6 @@ export default function LegacySettingsPage() {
       setSavingId(id);
       await saveLegacySettings(formData);
       
-      // Attempt generic status updates on save
       const updateStatus = { ...status };
       if (id === 'sheets') updateStatus.sheets = 'connected';
       if (id === 'telegram') updateStatus.telegram = 'connected';
@@ -105,7 +100,7 @@ export default function LegacySettingsPage() {
       if (id === 'gemini') updateStatus.gemini = 'connected';
       if (id === 'claude') updateStatus.claude = 'connected';
       if (id === 'grok') updateStatus.grok = 'connected';
-      setStatus(updateStatus as any);
+      setStatus(updateStatus);
       
       await refreshData();
     } catch (e: any) {
@@ -132,48 +127,15 @@ export default function LegacySettingsPage() {
     }
   };
 
-  const renderStatus = (currentState: string) => {
-    if (currentState === 'testing') {
-      return (
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-100/50">
-          <Loader2 className="w-3 h-3 text-blue-500 animate-spin" />
-          <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Testing</span>
-        </div>
-      );
-    }
-    if (currentState === 'connected') {
-      return (
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-100/50">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Connected</span>
-        </div>
-      );
-    }
-    if (currentState === 'error') {
-      return (
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 border border-rose-100/50">
-          <AlertCircle className="w-3 h-3 text-rose-500" />
-          <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider">Error</span>
-        </div>
-      );
-    }
-    return (
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200/60">
-        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Not Connected</span>
-      </div>
-    );
-  };
-
   const renderMessage = (id: string) => {
     const msg = testMessages[id];
     if (!msg) return null;
     return (
       <div className={cn(
-        'mt-3 flex items-start gap-2.5 p-3 rounded-[10px] text-[12.5px] font-medium leading-snug',
+        'mt-4 flex items-start gap-3 p-4 rounded-[16px] text-[13px] font-semibold leading-relaxed shadow-sm transition-all duration-300',
         msg.success
-          ? 'bg-emerald-50 border border-emerald-100 text-emerald-800'
-          : 'bg-rose-50 border border-rose-100 text-rose-800'
+          ? 'bg-emerald-50/80 border border-emerald-200/60 text-emerald-800'
+          : 'bg-rose-50/80 border border-rose-200/60 text-rose-800'
       )}>
         {msg.success
           ? <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
@@ -186,310 +148,334 @@ export default function LegacySettingsPage() {
 
   if (!mounted) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[500px] w-full gap-4 text-slate-400">
+      <div className="flex flex-col items-center justify-center min-h-[500px] w-full gap-5 text-slate-400">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="text-[13px] font-medium tracking-wide">Loading Secure Settings from Supabase...</p>
+        <p className="text-[13px] font-bold tracking-widest uppercase">Initializing Legacy Workspace...</p>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen pb-20">
-      {/* Premium Background Mesh */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/30 via-slate-50/50 to-white -z-10 pointer-events-none" />
+    <div className="relative min-h-screen pb-24">
+      {/* Premium Background System */}
+      <div className="fixed inset-0 z-[-1] pointer-events-none bg-[#f8fafc]">
+        {/* Soft gradient mesh */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-white to-purple-50/30" />
+        
+        {/* Blurred dynamic light overlays */}
+        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-blue-300/10 blur-[100px]" />
+        <div className="absolute bottom-[20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-300/10 blur-[120px]" />
+      </div>
       
-      <div className="max-w-4xl mx-auto space-y-8 pt-8">
+      <div className="max-w-[880px] mx-auto space-y-10 pt-10 px-4 sm:px-6">
         
         {/* Header */}
-        <div className="mb-8 border-b border-slate-200/60 pb-6">
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Legacy Settings</h1>
-          <p className="text-[14px] text-slate-500 mt-2 font-medium">Configure your Workspace, Google Sheets, Telegram, and AI Models.</p>
+        <div className="mb-10 pb-8 border-b border-slate-200/50">
+          <h1 className="text-[32px] font-black tracking-tight text-slate-900 leading-tight">Legacy Settings</h1>
+          <p className="text-[15px] text-slate-500 mt-2 font-medium">Configure your core Workspace integrations, Database sync, and AI parameters.</p>
         </div>
 
         <LegacyHealthCheck />
 
         {/* --- Google Sheets --- */}
-        <div className="p-6 rounded-[24px] bg-white/70 backdrop-blur-xl border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300">
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-[14px] bg-emerald-50 border border-emerald-100/50 flex items-center justify-center shrink-0 shadow-sm">
-                <Database className="h-[22px] w-[22px] text-emerald-600" />
+        <LegacyCard>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 rounded-[16px] bg-gradient-to-b from-emerald-50 to-emerald-100/50 border border-emerald-200/50 flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(16,185,129,0.12)]">
+                <Database className="h-6 w-6 text-emerald-600" />
               </div>
               <div>
-                <h4 className="text-[15px] font-bold text-slate-900 tracking-tight">Google Sheets Database</h4>
-                <p className="text-[12.5px] text-slate-500 font-medium mt-0.5">Used as the CRM database.</p>
+                <h4 className="text-[17px] font-black text-slate-900 tracking-tight">Google Sheets Database</h4>
+                <p className="text-[13px] text-slate-500 font-medium mt-1">Primary CRM database configuration.</p>
               </div>
             </div>
-            {renderStatus(status.sheets)}
+            <LegacyBadge status={status.sheets} />
           </div>
           
-          <div className="space-y-4 mb-6">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Spreadsheet URL</label>
-              <Input 
-                value={formData.sheets_url}
-                onChange={e => setFormData({ ...formData, sheets_url: e.target.value })}
-                placeholder="https://docs.google.com/spreadsheets/d/..." 
-                className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 font-mono focus:bg-white"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Service Account Email</label>
-              <Input 
-                value={formData.sheets_client_email}
-                onChange={e => setFormData({ ...formData, sheets_client_email: e.target.value })}
-                placeholder="nexusai-crm@project-id.iam.gserviceaccount.com" 
-                className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 font-mono focus:bg-white"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Private Key</label>
-                <button
-                  onClick={() => toggleKey('sheets_pk')}
-                  className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-blue-600 transition-colors"
-                >
-                  {showKeys['sheets_pk'] ? <><EyeOff className="h-3 w-3" /> Hide</> : <><Eye className="h-3 w-3" /> Show</>}
-                </button>
-              </div>
-              <Textarea 
-                value={showKeys['sheets_pk'] ? formData.sheets_private_key : (formData.sheets_private_key ? '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••' : '')}
-                onChange={e => { if (showKeys['sheets_pk']) setFormData({ ...formData, sheets_private_key: e.target.value }) }}
-                onFocus={() => setShowKeys(prev => ({ ...prev, sheets_pk: true }))}
-                placeholder="-----BEGIN PRIVATE KEY-----\n..." 
-                rows={5}
-                className="w-full rounded-[10px] bg-slate-50/50 border border-slate-200/60 px-3 py-2.5 text-[11.5px] font-mono text-slate-800 focus:outline-none focus:border-blue-400 focus:bg-white resize-none"
-              />
-            </div>
+          <div className="space-y-6 mb-8">
+            <LegacyInput 
+              label="Spreadsheet URL"
+              placeholder="https://docs.google.com/spreadsheets/d/..."
+              value={formData.sheets_url}
+              onChange={e => setFormData({ ...formData, sheets_url: e.target.value })}
+            />
+            <LegacyInput 
+              label="Service Account Email"
+              placeholder="nexusai-crm@project-id.iam.gserviceaccount.com"
+              value={formData.sheets_client_email}
+              onChange={e => setFormData({ ...formData, sheets_client_email: e.target.value })}
+            />
+            <LegacyInput 
+              label="Private Key"
+              placeholder="-----BEGIN PRIVATE KEY-----\n..."
+              isSecret
+              multiline
+              value={formData.sheets_private_key}
+              onChange={e => setFormData({ ...formData, sheets_private_key: e.target.value })}
+            />
           </div>
           
-          <div className="flex items-center gap-3 pt-5 border-t border-slate-100">
-            <Button
+          <div className="flex flex-col sm:flex-row items-center gap-3 pt-6 border-t border-slate-200/50">
+            <LegacyButton
               variant="secondary"
               onClick={() => runTest('sheets', () => testLegacySheets(formData.sheets_url, formData.sheets_client_email, formData.sheets_private_key))}
-              disabled={testingId === 'sheets'}
-              className="h-[40px] px-4 text-[13px] text-slate-900 rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700"
+              loading={testingId === 'sheets'}
+              loadingText="Testing..."
+              className="w-full sm:flex-1"
             >
-              {testingId === 'sheets' ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Testing...</> : 'Test Connection'}
-            </Button>
-            <Button 
+              Test Connection
+            </LegacyButton>
+            <LegacyButton 
+              variant="primary"
               onClick={() => handleSave('sheets')} 
-              disabled={savingId === 'sheets'} 
-              className="h-[40px] px-4 text-[13px] text-slate-900 rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]"
+              loading={savingId === 'sheets'} 
+              loadingText="Saving..."
+              className="w-full sm:flex-1"
             >
-              {savingId === 'sheets' ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Saving...</> : 'Save Credentials'}
-            </Button>
+              Save Credentials
+            </LegacyButton>
           </div>
           {renderMessage('sheets')}
-        </div>
+        </LegacyCard>
 
         {/* --- Telegram Bot --- */}
-        <div className="p-6 rounded-[24px] bg-white/70 backdrop-blur-xl border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300">
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-[14px] bg-[#0088cc]/10 border border-[#0088cc]/20 flex items-center justify-center shrink-0 shadow-sm">
-                <Send className="h-[22px] w-[22px] text-[#0088cc] -ml-0.5" />
+        <LegacyCard>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 rounded-[16px] bg-gradient-to-b from-[#0088cc]/10 to-[#0088cc]/5 border border-[#0088cc]/20 flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(0,136,204,0.12)]">
+                <Send className="h-6 w-6 text-[#0088cc] -ml-0.5" />
               </div>
               <div>
-                <h4 className="text-[15px] font-bold text-slate-900 tracking-tight">Telegram Bot</h4>
-                <p className="text-[12.5px] text-slate-500 font-medium mt-0.5">Conversation Management.</p>
+                <h4 className="text-[17px] font-black text-slate-900 tracking-tight">Telegram Bot</h4>
+                <p className="text-[13px] text-slate-500 font-medium mt-1">Lead engagement and notifications.</p>
               </div>
             </div>
-            {renderStatus(status.telegram)}
+            <LegacyBadge status={status.telegram} />
           </div>
           
-          <div className="space-y-4 mb-6">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Bot Token</label>
-              <div className="relative">
-                <Input 
-                  type={showKeys['tg_token'] ? 'text' : 'password'} 
-                  value={formData.telegram_bot_token}
-                  onChange={e => setFormData({ ...formData, telegram_bot_token: e.target.value })}
-                  placeholder="123456789:ABCdefGHIjkl..." 
-                  className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
-                />
-                <button onClick={() => toggleKey('tg_token')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors">
-                  {showKeys['tg_token'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
+          <div className="space-y-6 mb-8">
+            <LegacyInput 
+              label="Bot Token"
+              placeholder="123456789:ABCdefGHIjkl..."
+              isSecret
+              value={formData.telegram_bot_token}
+              onChange={e => setFormData({ ...formData, telegram_bot_token: e.target.value })}
+            />
           </div>
           
-          <div className="flex items-center gap-3 pt-5 border-t border-slate-100">
-            <Button
+          <div className="flex flex-col sm:flex-row items-center gap-3 pt-6 border-t border-slate-200/50">
+            <LegacyButton
               variant="secondary"
               onClick={() => runTest('telegram', () => testTelegramBot(formData.telegram_bot_token))}
-              disabled={testingId === 'telegram'}
-              className="h-[40px] px-4 text-[13px] text-slate-900 rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700"
+              loading={testingId === 'telegram'}
+              loadingText="Testing..."
+              className="w-full sm:flex-1"
             >
-              {testingId === 'telegram' ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Testing...</> : 'Validate Token'}
-            </Button>
-            <Button 
+              Validate Token
+            </LegacyButton>
+            <LegacyButton 
+              variant="primary"
               onClick={() => handleSave('telegram')} 
-              disabled={savingId === 'telegram'} 
-              className="h-[40px] px-4 text-[13px] text-slate-900 rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]"
+              loading={savingId === 'telegram'} 
+              loadingText="Saving..."
+              className="w-full sm:flex-1"
             >
-              {savingId === 'telegram' ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Saving...</> : 'Save Credentials'}
-            </Button>
+              Save Credentials
+            </LegacyButton>
           </div>
           {renderMessage('telegram')}
-        </div>
+        </LegacyCard>
 
         {/* --- AI Providers --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           
           {/* OpenAI */}
-          <div className="p-6 rounded-[24px] bg-white/70 backdrop-blur-xl border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300">
-            <div className="flex items-start justify-between mb-6">
+          <LegacyCard className="p-6">
+            <div className="flex items-start justify-between mb-8">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-[12px] bg-slate-900 flex items-center justify-center shrink-0 shadow-sm">
+                <div className="w-12 h-12 rounded-[14px] bg-slate-900 flex items-center justify-center shrink-0 shadow-md">
                   <Cpu className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h4 className="text-[14px] font-bold text-slate-900 tracking-tight">OpenAI</h4>
+                  <h4 className="text-[16px] font-black text-slate-900 tracking-tight">OpenAI</h4>
                 </div>
               </div>
-              {renderStatus(status.openai)}
+              <LegacyBadge status={status.openai} />
             </div>
-            <div className="space-y-4 mb-6">
-              <div className="relative">
-                <Input 
-                  type={showKeys['openai'] ? 'text' : 'password'} 
-                  value={formData.openai_key}
-                  onChange={e => setFormData({ ...formData, openai_key: e.target.value })}
-                  placeholder="sk-..." 
-                  className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
-                />
-                <button onClick={() => toggleKey('openai')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors">
-                  {showKeys['openai'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
+            
+            <div className="space-y-6 mb-8">
+              <LegacyInput 
+                label="API Key"
+                placeholder="sk-..."
+                isSecret
+                value={formData.openai_key}
+                onChange={e => setFormData({ ...formData, openai_key: e.target.value })}
+              />
             </div>
-            <div className="flex flex-col gap-2">
-              <Button variant="secondary" onClick={() => runTest('openai', () => testOpenAI(formData.openai_key))} disabled={testingId === 'openai'} className="h-[36px] text-[12px] rounded-[8px] font-semibold w-full">
-                {testingId === 'openai' ? 'Testing...' : 'Validate Key'}
-              </Button>
-              <Button onClick={() => handleSave('openai')} disabled={savingId === 'openai'} className="h-[36px] text-[12px] rounded-[8px] font-semibold w-full bg-[#2563EB] hover:bg-blue-700">
-                {savingId === 'openai' ? 'Saving...' : 'Save API Key'}
-              </Button>
+            
+            <div className="flex flex-col gap-3">
+              <LegacyButton 
+                variant="secondary" 
+                onClick={() => runTest('openai', () => testOpenAI(formData.openai_key))} 
+                loading={testingId === 'openai'} 
+                loadingText="Testing..."
+                className="w-full"
+              >
+                Validate Key
+              </LegacyButton>
+              <LegacyButton 
+                variant="primary" 
+                onClick={() => handleSave('openai')} 
+                loading={savingId === 'openai'} 
+                loadingText="Saving..."
+                className="w-full"
+              >
+                Save API Key
+              </LegacyButton>
             </div>
             {renderMessage('openai')}
-          </div>
+          </LegacyCard>
 
           {/* Gemini */}
-          <div className="p-6 rounded-[24px] bg-white/70 backdrop-blur-xl border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300">
-            <div className="flex items-start justify-between mb-6">
+          <LegacyCard className="p-6">
+            <div className="flex items-start justify-between mb-8">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-[12px] bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 shadow-sm">
+                <div className="w-12 h-12 rounded-[14px] bg-gradient-to-b from-blue-50 to-blue-100/50 border border-blue-200/50 flex items-center justify-center shrink-0 shadow-md">
                   <Cpu className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <h4 className="text-[14px] font-bold text-slate-900 tracking-tight">Google Gemini</h4>
+                  <h4 className="text-[16px] font-black text-slate-900 tracking-tight">Google Gemini</h4>
                 </div>
               </div>
-              {renderStatus(status.gemini)}
+              <LegacyBadge status={status.gemini} />
             </div>
-            <div className="space-y-4 mb-6">
-              <div className="relative">
-                <Input 
-                  type={showKeys['gemini'] ? 'text' : 'password'} 
-                  value={formData.gemini_key}
-                  onChange={e => setFormData({ ...formData, gemini_key: e.target.value })}
-                  placeholder="AIzaSy..." 
-                  className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
-                />
-                <button onClick={() => toggleKey('gemini')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors">
-                  {showKeys['gemini'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
+            
+            <div className="space-y-6 mb-8">
+              <LegacyInput 
+                label="API Key"
+                placeholder="AIzaSy..."
+                isSecret
+                value={formData.gemini_key}
+                onChange={e => setFormData({ ...formData, gemini_key: e.target.value })}
+              />
             </div>
-            <div className="flex flex-col gap-2">
-              <Button variant="secondary" onClick={() => runTest('gemini', () => testGemini(formData.gemini_key))} disabled={testingId === 'gemini'} className="h-[36px] text-[12px] rounded-[8px] font-semibold w-full">
-                {testingId === 'gemini' ? 'Testing...' : 'Validate Key'}
-              </Button>
-              <Button onClick={() => handleSave('gemini')} disabled={savingId === 'gemini'} className="h-[36px] text-[12px] rounded-[8px] font-semibold w-full bg-[#2563EB] hover:bg-blue-700">
-                {savingId === 'gemini' ? 'Saving...' : 'Save API Key'}
-              </Button>
+            
+            <div className="flex flex-col gap-3">
+              <LegacyButton 
+                variant="secondary" 
+                onClick={() => runTest('gemini', () => testGemini(formData.gemini_key))} 
+                loading={testingId === 'gemini'} 
+                loadingText="Testing..."
+                className="w-full"
+              >
+                Validate Key
+              </LegacyButton>
+              <LegacyButton 
+                variant="primary" 
+                onClick={() => handleSave('gemini')} 
+                loading={savingId === 'gemini'} 
+                loadingText="Saving..."
+                className="w-full"
+              >
+                Save API Key
+              </LegacyButton>
             </div>
             {renderMessage('gemini')}
-          </div>
+          </LegacyCard>
 
           {/* Claude */}
-          <div className="p-6 rounded-[24px] bg-white/70 backdrop-blur-xl border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300">
-            <div className="flex items-start justify-between mb-6">
+          <LegacyCard className="p-6">
+            <div className="flex items-start justify-between mb-8">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-[12px] bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 shadow-sm">
+                <div className="w-12 h-12 rounded-[14px] bg-gradient-to-b from-orange-50 to-orange-100/50 border border-orange-200/50 flex items-center justify-center shrink-0 shadow-md">
                   <Cpu className="h-5 w-5 text-orange-600" />
                 </div>
                 <div>
-                  <h4 className="text-[14px] font-bold text-slate-900 tracking-tight">Anthropic Claude</h4>
+                  <h4 className="text-[16px] font-black text-slate-900 tracking-tight">Anthropic Claude</h4>
                 </div>
               </div>
-              {renderStatus(status.claude)}
+              <LegacyBadge status={status.claude} />
             </div>
-            <div className="space-y-4 mb-6">
-              <div className="relative">
-                <Input 
-                  type={showKeys['claude'] ? 'text' : 'password'} 
-                  value={formData.claude_key}
-                  onChange={e => setFormData({ ...formData, claude_key: e.target.value })}
-                  placeholder="sk-ant-..." 
-                  className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
-                />
-                <button onClick={() => toggleKey('claude')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors">
-                  {showKeys['claude'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
+            
+            <div className="space-y-6 mb-8">
+              <LegacyInput 
+                label="API Key"
+                placeholder="sk-ant-..."
+                isSecret
+                value={formData.claude_key}
+                onChange={e => setFormData({ ...formData, claude_key: e.target.value })}
+              />
             </div>
-            <div className="flex flex-col gap-2">
-              <Button variant="secondary" onClick={() => runTest('claude', () => testClaude(formData.claude_key))} disabled={testingId === 'claude'} className="h-[36px] text-[12px] rounded-[8px] font-semibold w-full">
-                {testingId === 'claude' ? 'Testing...' : 'Validate Key'}
-              </Button>
-              <Button onClick={() => handleSave('claude')} disabled={savingId === 'claude'} className="h-[36px] text-[12px] rounded-[8px] font-semibold w-full bg-[#2563EB] hover:bg-blue-700">
-                {savingId === 'claude' ? 'Saving...' : 'Save API Key'}
-              </Button>
+            
+            <div className="flex flex-col gap-3">
+              <LegacyButton 
+                variant="secondary" 
+                onClick={() => runTest('claude', () => testClaude(formData.claude_key))} 
+                loading={testingId === 'claude'} 
+                loadingText="Testing..."
+                className="w-full"
+              >
+                Validate Key
+              </LegacyButton>
+              <LegacyButton 
+                variant="primary" 
+                onClick={() => handleSave('claude')} 
+                loading={savingId === 'claude'} 
+                loadingText="Saving..."
+                className="w-full"
+              >
+                Save API Key
+              </LegacyButton>
             </div>
             {renderMessage('claude')}
-          </div>
+          </LegacyCard>
 
           {/* Grok */}
-          <div className="p-6 rounded-[24px] bg-white/70 backdrop-blur-xl border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300">
-            <div className="flex items-start justify-between mb-6">
+          <LegacyCard className="p-6">
+            <div className="flex items-start justify-between mb-8">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-[12px] bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0 shadow-sm">
-                  <span className="text-white font-black text-[18px] leading-none">X</span>
+                <div className="w-12 h-12 rounded-[14px] bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0 shadow-md">
+                  <span className="text-white font-black text-[20px] leading-none">X</span>
                 </div>
                 <div>
-                  <h4 className="text-[14px] font-bold text-slate-900 tracking-tight">Grok AI</h4>
+                  <h4 className="text-[16px] font-black text-slate-900 tracking-tight">Grok AI</h4>
                 </div>
               </div>
-              {renderStatus(status.grok)}
+              <LegacyBadge status={status.grok} />
             </div>
-            <div className="space-y-4 mb-6">
-              <div className="relative">
-                <Input 
-                  type={showKeys['grok'] ? 'text' : 'password'} 
-                  value={formData.grok_key}
-                  onChange={e => setFormData({ ...formData, grok_key: e.target.value })}
-                  placeholder="xai-..." 
-                  className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
-                />
-                <button onClick={() => toggleKey('grok')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors">
-                  {showKeys['grok'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
+            
+            <div className="space-y-6 mb-8">
+              <LegacyInput 
+                label="API Key"
+                placeholder="xai-..."
+                isSecret
+                value={formData.grok_key}
+                onChange={e => setFormData({ ...formData, grok_key: e.target.value })}
+              />
             </div>
-            <div className="flex flex-col gap-2">
-              <Button variant="secondary" onClick={() => runTest('grok', () => testGrok(formData.grok_key))} disabled={testingId === 'grok'} className="h-[36px] text-[12px] rounded-[8px] font-semibold w-full">
-                {testingId === 'grok' ? 'Testing...' : 'Validate Key'}
-              </Button>
-              <Button onClick={() => handleSave('grok')} disabled={savingId === 'grok'} className="h-[36px] text-[12px] rounded-[8px] font-semibold w-full bg-[#2563EB] hover:bg-blue-700">
-                {savingId === 'grok' ? 'Saving...' : 'Save API Key'}
-              </Button>
+            
+            <div className="flex flex-col gap-3">
+              <LegacyButton 
+                variant="secondary" 
+                onClick={() => runTest('grok', () => testGrok(formData.grok_key))} 
+                loading={testingId === 'grok'} 
+                loadingText="Testing..."
+                className="w-full"
+              >
+                Validate Key
+              </LegacyButton>
+              <LegacyButton 
+                variant="primary" 
+                onClick={() => handleSave('grok')} 
+                loading={savingId === 'grok'} 
+                loadingText="Saving..."
+                className="w-full"
+              >
+                Save API Key
+              </LegacyButton>
             </div>
             {renderMessage('grok')}
-          </div>
+          </LegacyCard>
 
         </div>
 
