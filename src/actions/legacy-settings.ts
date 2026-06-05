@@ -3,12 +3,7 @@
 import { getAuthenticatedUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-export async function saveLegacySettings(settings: {
-  sheets_url: string;
-  sheets_client_email: string;
-  sheets_private_key: string;
-  telegram_bot_token: string;
-}) {
+export async function saveLegacySettings(settings: Record<string, any>) {
   const user = await getAuthenticatedUser();
   const supabase = await createClient();
 
