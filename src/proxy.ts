@@ -10,7 +10,7 @@ const ratelimit = new Ratelimit({
   analytics: true,
 });
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // 1. Rate Limiting Protection (API routes only)
   if (request.nextUrl.pathname.startsWith("/api/")) {
     const ip = request.ip ?? "127.0.0.1";
