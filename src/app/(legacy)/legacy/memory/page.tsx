@@ -4,14 +4,18 @@ import { useState, useMemo } from "react";
 import { useLegacyStore } from "@/legacy/store/legacy-store";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { MemoryCardSkeleton } from "@/legacy/components/ui/LegacySkeletons";
 import {
   Search,
   Brain,
   X,
   ArrowRight,
+  DollarSign,
+  Target,
+  Zap,
+  Building2,
 } from "lucide-react";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -66,7 +70,7 @@ function urgencyConfig(value: string): { bg: string; text: string; dot: string; 
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function LegacyMemoryPage() {
-  const { memory, leads } = useLegacyStore();
+  const { memory, leads, isLoading } = useLegacyStore();
   const [search, setSearch] = useState("");
 
   const leadsMap = useMemo(() => {
@@ -127,22 +131,18 @@ export default function LegacyMemoryPage() {
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
-      {/* ── Header & Toolbar ────────────────────────────────────────────────── */}
+      {/* Header & Toolbar */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">AI Memory</h1>
-          <p className="text-sm text-slate-400 mt-1">Information extracted by AI from conversations.</p>
+          <h1 className="text-[28px] font-black tracking-tight text-white leading-none">AI Memory</h1>
+          <p className="text-sm text-slate-500 mt-2">Extracted insights from lead conversations.</p>
         </div>
-
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          {/* Pill */}
-          <div className="flex items-center gap-2 bg-[#0B0F19]/80 border border-slate-800 rounded-lg px-4 py-2 shadow-sm text-[13px] text-slate-400 h-10 whitespace-nowrap">
+          <div className="flex items-center gap-2 bg-[#0B0F19]/80 border border-slate-800 rounded-lg px-4 py-2 shadow-sm text-[13px] text-slate-400 h-9 whitespace-nowrap">
             <Brain className="h-4 w-4 text-blue-500" />
-            <span><strong className="text-white font-semibold">{filtered.length}</strong> lead{filtered.length !== 1 ? "s" : ""} with AI memory</span>
+            <span><strong className="text-white font-semibold">{filtered.length}</strong> leads with AI memory</span>
           </div>
-
-          {/* Search */}
-          <div className="flex items-center w-full sm:w-[280px] h-10 bg-[#0B0F19] border border-slate-800 rounded-lg shadow-sm focus-within:ring-1 focus-within:ring-slate-700 transition-all px-3 gap-2">
+          <div className="flex items-center w-full sm:w-[280px] h-9 bg-[#0B0F19] border border-slate-800 rounded-lg shadow-sm focus-within:ring-1 focus-within:ring-blue-500/40 transition-all px-3 gap-2">
             <Search className="h-3.5 w-3.5 text-slate-500 shrink-0" />
             <input
               type="text"
@@ -160,11 +160,16 @@ export default function LegacyMemoryPage() {
         </div>
       </div>
 
-      {/* ── Grid ────────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Skeleton loading state */}
+      {isLoading && memory.length === 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 6 }).map((_, i) => <MemoryCardSkeleton key={i} />)}
+        </div>
+      ) : (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.length === 0 ? (
           <div className="col-span-full py-20 text-center flex flex-col items-center border border-slate-800 rounded-xl bg-[#0B0F19]/30">
-            <div className="h-16 w-16 bg-slate-800/20 rounded-full flex items-center justify-center mb-4">
+            <div className="h-16 w-16 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 border border-slate-700">
               <Brain className="h-8 w-8 text-slate-600" />
             </div>
             <p className="text-base font-semibold text-white">No memory records found</p>
@@ -218,18 +223,22 @@ export default function LegacyMemoryPage() {
                 {/* ── Divider ─────────────────────────────────────────────── */}
                 <div className="mx-5 h-px bg-slate-800/60" />
 
-                {/* ── 2-Column Memory Grid ────────────────────────────────── */}
+                {/* ── 2-Column Memory Grid */}
                 <div className="px-5 py-5 grid grid-cols-2 gap-x-4 gap-y-5 flex-1">
 
                   {/* Business Type */}
                   <div className="flex flex-col gap-1.5 min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Business Type</p>
-                    <p className="text-[13px] font-medium text-slate-300 leading-snug truncate capitalize">{displayBizType}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1">
+                      <Building2 className="h-3 w-3" /> Business Type
+                    </p>
+                    <p className="text-[13px] font-semibold text-slate-300 leading-snug truncate capitalize">{displayBizType}</p>
                   </div>
 
                   {/* Budget */}
                   <div className="flex flex-col gap-1.5 min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Budget</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1">
+                      <DollarSign className="h-3 w-3" /> Budget
+                    </p>
                     {budget ? (
                       <p className="text-[13px] font-bold text-emerald-400 leading-snug truncate">{budget}</p>
                     ) : (
@@ -239,7 +248,9 @@ export default function LegacyMemoryPage() {
 
                   {/* Intent */}
                   <div className="flex flex-col gap-1.5 min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Intent</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1">
+                      <Target className="h-3 w-3" /> Intent
+                    </p>
                     {intent ? (
                       <div>
                         <span className="inline-flex items-center px-2 py-1 rounded-[6px] bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[11px] font-bold leading-none truncate max-w-full">
@@ -253,7 +264,9 @@ export default function LegacyMemoryPage() {
 
                   {/* Urgency */}
                   <div className="flex flex-col gap-1.5 min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Urgency</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1">
+                      <Zap className="h-3 w-3" /> Urgency
+                    </p>
                     {urgency && urg ? (
                       <div>
                         <span className={cn(
@@ -286,6 +299,7 @@ export default function LegacyMemoryPage() {
           })
         )}
       </div>
+      )} {/* end isLoading/skeleton check */}
     </div>
   );
 }

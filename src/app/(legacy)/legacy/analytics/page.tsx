@@ -3,14 +3,15 @@
 import { useState, useMemo, useEffect } from "react";
 import { useLegacyStore } from "@/legacy/store/legacy-store";
 import { cn } from "@/lib/utils";
+import { ChartPanelSkeleton, KPICardSkeleton } from "@/legacy/components/ui/LegacySkeletons";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell, FunnelChart, Funnel, LabelList, AreaChart, Area
 } from "recharts";
 import {
   CalendarDays, TrendingUp, TrendingDown, Users, CheckCircle2, Calendar,
-  MessageSquare, Minus, Filter, Activity, BarChart3, Target, DollarSign,
-  PieChart as PieChartIcon, Zap, Layers, Focus
+  MessageSquare, Minus, SlidersHorizontal, Activity, BarChart3, Target, DollarSign,
+  PieChart as PieChartIcon, Zap, Layers, Focus, RefreshCw
 } from "lucide-react";
 
 // ── Types & Constants ────────────────────────────────────────────────────────
@@ -48,7 +49,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // ── Main Page Component ──────────────────────────────────────────────────────
 
 export default function LegacyAnalyticsPage() {
-  const { leads, conversations, appointments, memory, refreshData, lastSynced } = useLegacyStore();
+  const { leads, conversations, appointments, memory, refreshData, lastSynced, isLoading } = useLegacyStore();
   const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<DateFilter>("30d");
   const [activityToggle, setActivityToggle] = useState<"messages" | "leads">("messages");
@@ -325,6 +326,32 @@ export default function LegacyAnalyticsPage() {
 
   if (!mounted) return null;
 
+  // Skeleton loader if data loading
+  if (isLoading && leads.length === 0) {
+    return (
+      <div className="max-w-[1600px] mx-auto pb-16 space-y-8 animate-in fade-in duration-500">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4">
+          <div>
+            <div className="h-8 w-64 rounded-lg bg-slate-800/60 animate-pulse" />
+            <div className="h-3 w-48 rounded-lg bg-slate-800/40 animate-pulse mt-3" />
+          </div>
+          <div className="h-10 w-80 rounded-lg bg-slate-800/60 animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => <KPICardSkeleton key={i} />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <ChartPanelSkeleton />
+          <ChartPanelSkeleton />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <ChartPanelSkeleton />
+          <ChartPanelSkeleton />
+        </div>
+      </div>
+    );
+  }
+
   // ── UI Components ──────────────────────────────────────────────────────────
 
   const Panel = ({ children, className }: { children: React.ReactNode, className?: string }) => (
@@ -334,39 +361,49 @@ export default function LegacyAnalyticsPage() {
   );
 
   const SectionTitle = ({ icon: Icon, title, desc }: any) => (
-    <div className="mb-6">
-      <h2 className="text-[15px] font-bold text-white flex items-center gap-2">
-        <Icon className="h-4 w-4 text-blue-500" /> {title}
+    <div className="mb-5">
+      <h2 className="text-[14px] font-bold text-white flex items-center gap-2">
+        <span className="w-0.5 h-4 rounded-full bg-blue-500 shrink-0" />
+        <Icon className="h-3.5 w-3.5 text-blue-400" /> {title}
       </h2>
-      <p className="text-xs text-slate-400 mt-1">{desc}</p>
+      <p className="text-[11px] text-slate-500 mt-1 ml-6">{desc}</p>
     </div>
   );
 
   return (
     <div className="max-w-[1600px] mx-auto pb-16 space-y-8 animate-in fade-in duration-500">
       
-      {/* ── Header & Global Filters ── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-[#0B0F19]/40 p-1 -mx-2 rounded-xl sticky top-0 z-50 backdrop-blur-md border-b border-slate-800/50 pb-4">
-        <div className="px-2">
-          <h1 className="text-[26px] font-black tracking-tight text-white leading-none">Business Intelligence</h1>
-          <p className="text-sm font-medium text-slate-400 mt-2">Executive analytics powered by live CRM datasets.</p>
+      {/* Header & Global Filters */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-[28px] font-black tracking-tight text-white leading-none">Business Intelligence</h1>
+          <p className="text-sm font-medium text-slate-500 mt-2">Executive analytics powered by live CRM datasets.</p>
         </div>
-        <div className="flex items-center gap-2 bg-[#0B0F19] border border-slate-800 rounded-lg p-1.5 shadow-inner">
-          <Filter className="h-4 w-4 text-slate-500 ml-2 mr-1" />
-          {(["7d", "30d", "90d", "365d", "all"] as const).map((f) => {
-            const labels = { "7d": "7 Days", "30d": "30 Days", "90d": "90 Days", "365d": "1 Year", "all": "Lifetime" };
-            return (
-              <button
-                key={f} onClick={() => setFilter(f)}
-                className={cn(
-                  "px-3 py-1.5 rounded-md text-[13px] font-bold transition-all duration-200 outline-none",
-                  filter === f ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
-                )}
-              >
-                {labels[f]}
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => refreshData()}
+            className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 hover:border-slate-700 transition-all"
+            title="Refresh data"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+          </button>
+          <div className="flex items-center gap-1 bg-[#0B0F19] border border-slate-800 rounded-lg p-1 shadow-inner">
+            <SlidersHorizontal className="h-3.5 w-3.5 text-slate-600 ml-2 mr-1" />
+            {(["7d", "30d", "90d", "365d", "all"] as const).map((f) => {
+              const labels = { "7d": "7D", "30d": "30D", "90d": "90D", "365d": "1Y", "all": "All" };
+              return (
+                <button
+                  key={f} onClick={() => setFilter(f)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-md text-[12px] font-bold transition-all duration-150 outline-none",
+                    filter === f ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-200"
+                  )}
+                >
+                  {labels[f]}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -423,7 +460,7 @@ export default function LegacyAnalyticsPage() {
         </Panel>
       </div>
 
-      {/* ── Section 7: Conversion Analytics (Top Cards) ── */}
+      {/* Conversion Analytics Tiles */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { l: "Lead → Qualified", v: convLeadToQual, c: "from-blue-600/20 to-blue-500/5", b: "border-blue-500/20", t: "text-blue-400" },
@@ -431,19 +468,22 @@ export default function LegacyAnalyticsPage() {
           { l: "Appointment → Customer", v: convApptToCust, c: "from-emerald-600/20 to-emerald-500/5", b: "border-emerald-500/20", t: "text-emerald-400" },
           { l: "Overall Conversion", v: convOverall, c: "from-amber-600/20 to-amber-500/5", b: "border-amber-500/20", t: "text-amber-400" },
         ].map((c, i) => (
-          <div key={i} className={cn("rounded-2xl p-6 border flex flex-col items-center justify-center text-center bg-gradient-to-b", c.c, c.b)}>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{c.l}</span>
-            <span className={cn("text-4xl font-black", c.t)}>{c.v}%</span>
+          <div key={i} className={cn("rounded-xl p-5 border flex flex-col gap-3 bg-gradient-to-b", c.c, c.b)}>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{c.l}</span>
+            <span className={cn("text-3xl font-black", c.t)}>{c.v}%</span>
+            <div className="h-1.5 bg-slate-800/60 rounded-full overflow-hidden">
+              <div className={cn("h-full rounded-full transition-all", c.t.replace("text-", "bg-"))} style={{ width: `${Math.min(c.v, 100)}%` }} />
+            </div>
           </div>
         ))}
       </div>
 
-      {/* ── Grid Row: Funnel & Lead Growth ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Grid Row: Funnel & Lead Growth */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         
         {/* Section 6: Sales Funnel */}
         <Panel className="p-6">
-          <SectionTitle icon={Filter} title="Sales Funnel Analytics" desc="Drop-offs through the sales pipeline." />
+          <SectionTitle icon={Layers} title="Sales Funnel Analytics" desc="Drop-offs through the sales pipeline." />
           <div className="h-[300px] w-full">
             {currLeads.length === 0 ? <div className="h-full flex items-center justify-center text-slate-500">No leads.</div> :
               <ResponsiveContainer width="100%" height="100%">

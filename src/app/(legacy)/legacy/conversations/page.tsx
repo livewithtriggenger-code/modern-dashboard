@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useLegacyStore } from "@/legacy/store/legacy-store";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LegacyBadge } from "@/legacy/components/ui/LegacyBadge";
+import { ChatListSkeleton } from "@/legacy/components/ui/LegacySkeletons";
 import { 
   Search, Bot, MessageSquare, Phone, Mail, Send, Brain, Zap, 
   Calendar, Sparkles, Activity, CheckCircle2, ChevronRight, 
@@ -13,8 +14,18 @@ import Link from "next/link";
 import { format } from "date-fns";
 
 export default function LegacyConversationsPage() {
-  const { leads, conversations, memories, refreshData, addConversation } = useLegacyStore();
+  const { leads, conversations, memory: memories, refreshData, addConversation, isLoading } = useLegacyStore();
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+
+  // Avatar gradient seeded by name
+  const AVATAR_GRADIENTS = [
+    "bg-blue-600", "bg-purple-600", "bg-emerald-600",
+    "bg-rose-600", "bg-amber-600", "bg-cyan-600", "bg-indigo-600",
+  ];
+  const getAvatarColor = (name: string) => {
+    const idx = (name || "A").charCodeAt(0) % AVATAR_GRADIENTS.length;
+    return AVATAR_GRADIENTS[idx];
+  };
   
   const [aiInsights, setAiInsights] = useState<{ signal: string, opportunity: string, actionTitle: string, actionDesc: string } | null>(null);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
@@ -175,7 +186,9 @@ ${leadMems || 'None'}`;
       leadId: activeLeadId,
       message: messageText,
       sender: 'owner',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      channel: 'web',
+      messageType: 'text'
     };
     
     addConversation(tempMsg);
@@ -228,30 +241,34 @@ ${leadMems || 'None'}`;
   };
 
   return (
-    <div style={{ position: 'fixed', top: '64px', left: '256px', right: 0, bottom: 0 }} className="flex bg-[#0B0F19] overflow-hidden z-[5]">
+    <div style={{ position: 'fixed', top: '64px', left: '256px', right: 0, bottom: 0 }} className="flex bg-[#080C15] overflow-hidden z-[5]">
       
       {/* LEFT COLUMN — Chat List */}
-      <div className="w-[360px] shrink-0 flex flex-col bg-[#0B0F19] border-r border-slate-800/60 z-10">
-        <div className="p-4 shrink-0 border-b border-slate-800/60 bg-[#0B0F19]">
-          <div className="flex items-center bg-[#131B2C] border border-slate-800 rounded-xl px-3 h-10 gap-2.5 transition-colors focus-within:border-indigo-500/50 shadow-inner">
-            <Search className="h-4 w-4 text-slate-500 shrink-0" />
+      <div className="w-[320px] shrink-0 flex flex-col bg-[#080C15] border-r border-slate-800/60 z-10">
+        {/* Search bar */}
+        <div className="px-4 py-3 shrink-0 border-b border-slate-800/60">
+          <div className="flex items-center bg-slate-800/50 border border-slate-700/50 rounded-xl px-3 h-9 gap-2.5 transition-all focus-within:border-blue-500/40 focus-within:ring-1 focus-within:ring-blue-500/20">
+            <Search className="h-3.5 w-3.5 text-slate-500 shrink-0" />
             <input
               type="text"
-              placeholder="Search leads, companies..."
+              placeholder="Search conversations..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent border-none outline-none text-[14px] text-slate-200 placeholder:text-slate-500 w-full"
+              className="flex-1 bg-transparent border-none outline-none text-[13px] text-slate-200 placeholder:text-slate-500 w-full"
             />
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-          {filteredLeads.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-[#131B2C] flex items-center justify-center border border-slate-800">
+          {isLoading && filteredLeads.length === 0 ? (
+            <ChatListSkeleton rows={7} />
+          ) : filteredLeads.length === 0 ? (
+            <div className="p-10 text-center flex flex-col items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-slate-800/60 flex items-center justify-center border border-slate-700">
                 <MessageSquare className="h-5 w-5 text-slate-600" />
               </div>
-              <p className="text-[14px] font-medium">No conversations found</p>
+              <p className="text-[13px] font-semibold text-slate-400">No conversations found</p>
+              <p className="text-[12px] text-slate-600">Try a different search term.</p>
             </div>
           ) : (
             filteredLeads.map((leadId) => {
@@ -262,39 +279,46 @@ ${leadMems || 'None'}`;
               const isActive = activeLeadId === leadId;
               const msgTime = safeTime(lastMsg?.timestamp);
               const preview = lastMsg?.message || '';
+              const avatarColor = getAvatarColor(name);
 
               return (
                 <button
                   key={leadId}
                   onClick={() => setSelectedLeadId(leadId)}
-                  className={`w-full text-left flex items-center gap-3.5 px-4 py-3.5 border-b border-slate-800/40 transition-colors ${
-                    isActive ? 'bg-[#131B2C]' : 'hover:bg-slate-900/50'
+                  className={`relative w-full text-left flex items-center gap-3 px-4 py-3 border-b border-slate-800/40 transition-all duration-150 ${
+                    isActive
+                      ? 'bg-slate-800/60'
+                      : 'hover:bg-slate-800/25'
                   }`}
                 >
-                  <Avatar className="h-11 w-11 shrink-0 border border-slate-700/50 shadow-sm bg-indigo-600">
-                    <AvatarFallback className="bg-indigo-600 text-white font-semibold text-sm">
-                      {getInitials(name)}
-                    </AvatarFallback>
-                  </Avatar>
+                  {/* Active left indicator */}
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-8 rounded-r-full bg-blue-500" />
+                  )}
+                  <div className={`h-10 w-10 rounded-full ${avatarColor} flex items-center justify-center text-[13px] font-bold text-white shrink-0 shadow-sm`}>
+                    {getInitials(name)}
+                  </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`text-[15px] font-medium truncate max-w-[160px] ${isActive ? 'text-indigo-400' : 'text-slate-200'}`}>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className={`text-[13px] font-semibold truncate max-w-[140px] transition-colors ${
+                        isActive ? 'text-white' : 'text-slate-200'
+                      }`}>
                         {name}
                       </span>
-                      <span className={`text-[11px] shrink-0 ml-2 ${isActive ? 'text-indigo-500/80' : 'text-slate-500'}`}>
+                      <span className={`text-[10px] shrink-0 ml-2 font-medium ${
+                        isActive ? 'text-blue-400' : 'text-slate-600'
+                      }`}>
                         {msgTime}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       {lastMsg?.sender?.toLowerCase() === 'human' || lastMsg?.sender?.toLowerCase() === 'owner' ? (
-                         <CheckCheck className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+                         <CheckCheck className="h-3 w-3 text-blue-400 shrink-0" />
                       ) : lastMsg?.sender?.toLowerCase() === 'ai' ? (
-                         <Sparkles className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                         <Sparkles className="h-3 w-3 text-emerald-500 shrink-0" />
                       ) : null}
-                      <p className={`text-[13px] truncate m-0 ${isActive ? 'text-slate-400' : 'text-slate-500'}`}>
-                        {preview}
-                      </p>
+                      <p className="text-[12px] truncate text-slate-500">{preview}</p>
                     </div>
                   </div>
                 </button>
@@ -305,18 +329,18 @@ ${leadMems || 'None'}`;
       </div>
 
       {/* MIDDLE COLUMN: Chat Feed Workspace */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#0B0F19] relative border-r border-slate-800/60 overflow-hidden z-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#080C15] relative border-r border-slate-800/60 overflow-hidden z-0">
         
         {/* Chat Header */}
-        <div className="h-[64px] shrink-0 px-5 flex items-center justify-between bg-[#131B2C]/95 backdrop-blur-xl border-b border-slate-800/60 z-20 shadow-sm w-full">
-          <div className="flex items-center gap-3.5">
-            <Avatar className="h-10 w-10 shrink-0 border border-slate-700/50 bg-indigo-600 shadow-sm">
-               <AvatarFallback className="bg-indigo-600 text-white font-semibold">{getInitials(activeName)}</AvatarFallback>
-            </Avatar>
+        <div className="h-[60px] shrink-0 px-5 flex items-center justify-between bg-[#0D1117]/95 backdrop-blur-xl border-b border-slate-800/60 z-20 shadow-sm w-full">
+          <div className="flex items-center gap-3">
+            <div className={`h-9 w-9 rounded-full ${getAvatarColor(activeName)} flex items-center justify-center text-[12px] font-bold text-white shrink-0 shadow-sm`}>
+              {getInitials(activeName)}
+            </div>
             <div className="flex flex-col">
-              <h2 className="text-[15px] font-semibold text-slate-100 leading-tight">{activeName || 'Select a lead'}</h2>
-              <span className="text-[12px] font-medium text-slate-500 mt-0.5">
-                Score <span className="text-amber-500 font-bold">{activeLead?.leadScore || '--'}</span>
+              <h2 className="text-[14px] font-bold text-slate-100 leading-tight">{activeName || 'Select a lead'}</h2>
+              <span className="text-[11px] font-medium text-slate-500 mt-0.5">
+                Score <span className="text-amber-400 font-bold">{activeLead?.leadScore || '--'}</span>/10
               </span>
             </div>
           </div>
@@ -328,33 +352,36 @@ ${leadMems || 'None'}`;
         </div>
 
         {/* Chat Feed */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar relative p-4 sm:p-6 w-full bg-[#0B0F19] flex flex-col">
-          {/* Abstract Premium Chat Background */}
-          <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }}></div>
-          <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#0B0F19]/80 via-transparent to-[#0B0F19]/90 pointer-events-none"></div>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar relative p-4 sm:p-5 w-full bg-[#080C15] flex flex-col">
+          {/* Subtle dot grid background */}
+          <div className="absolute inset-0 z-0 opacity-[0.025] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }}></div>
 
-          <div className="relative z-10 flex-1 flex flex-col max-w-4xl mx-auto w-full px-2 sm:px-[5%] pb-8">
+          <div className="relative z-10 flex-1 flex flex-col max-w-3xl mx-auto w-full pb-4">
             {!activeLeadId ? (
-              <div className="m-auto flex flex-col items-center justify-center">
-                <div className="h-16 w-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mb-4 shadow-lg shadow-black/20">
+              <div className="m-auto flex flex-col items-center justify-center text-center gap-4">
+                <div className="h-16 w-16 rounded-full bg-slate-800/60 border border-slate-700 flex items-center justify-center shadow-lg">
                    <MessageSquare className="h-7 w-7 text-slate-500" />
                 </div>
-                <h3 className="text-lg font-medium text-slate-300">No Conversation Selected</h3>
-                <p className="text-sm text-slate-500 mt-2">Select a lead from the sidebar to view history.</p>
+                <div>
+                  <h3 className="text-base font-semibold text-slate-300">No Conversation Selected</h3>
+                  <p className="text-sm text-slate-500 mt-1">Select a lead from the left to view conversation history.</p>
+                </div>
               </div>
             ) : activeConversations.length === 0 ? (
-              <div className="m-auto flex flex-col items-center justify-center">
-                <div className="h-16 w-16 rounded-full bg-indigo-900/30 border border-indigo-500/30 flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/10">
-                   <Bot className="h-7 w-7 text-indigo-400" />
+              <div className="m-auto flex flex-col items-center justify-center text-center gap-4">
+                <div className="h-14 w-14 rounded-full bg-blue-900/30 border border-blue-500/30 flex items-center justify-center shadow-lg shadow-blue-500/10">
+                   <Bot className="h-6 w-6 text-blue-400" />
                 </div>
-                <h3 className="text-lg font-medium text-slate-300">Automation Ready</h3>
-                <p className="text-sm text-slate-500 mt-2">Ready to engage when the lead responds.</p>
+                <div>
+                  <h3 className="text-base font-semibold text-slate-300">Automation Ready</h3>
+                  <p className="text-sm text-slate-500 mt-1">Ready to engage when the lead responds.</p>
+                </div>
               </div>
             ) : (
               <>
-                <div className="flex justify-center mb-6 mt-4">
-                  <span className="bg-slate-900/80 border border-slate-800 text-slate-400 text-[11px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full shadow-sm backdrop-blur-md">
-                    Beginning of History
+                <div className="flex justify-center mb-5 mt-2">
+                  <span className="bg-slate-800/70 border border-slate-700/60 text-slate-500 text-[10px] font-bold tracking-[0.12em] uppercase px-3 py-1 rounded-full backdrop-blur-md">
+                    Beginning of Conversation
                   </span>
                 </div>
 
@@ -365,42 +392,40 @@ ${leadMems || 'None'}`;
                   const isOutgoing = isAI || isOwner;
 
                   return (
-                    <div key={conv.id || idx} className="flex flex-col w-full group mb-2 overflow-hidden">
+                    <div key={conv.id || idx} className="flex flex-col w-full group mb-1.5 overflow-hidden">
                       {!isOutgoing ? (
-                        <div className="flex justify-start w-full pr-12 sm:pr-24 my-1">
-                          <div className="relative bg-[#1e293b] border border-slate-700/60 rounded-xl rounded-tl-sm px-3.5 pt-2.5 pb-[26px] shadow-sm max-w-[85%] break-words">
-                            <svg style={{ position: 'absolute', top: '-1px', left: '-8px' }} width="9" height="14" viewBox="0 0 9 14">
-                              <path d="M9 0 L0 0 L0 14 Q4 7 9 0 Z" fill="#1e293b" />
-                            </svg>
-                            <p className="text-[13px] font-semibold text-indigo-400 mb-[5px] leading-none">{activeName}</p>
-                            <p className="text-[14.5px] leading-[1.4] text-slate-200 break-words whitespace-pre-wrap max-w-full overflow-hidden m-0">{conv.message}</p>
-                            <span className="absolute right-3 bottom-1.5 text-[10.5px] font-medium text-slate-400/80 leading-none">{msgTime}</span>
+                        // Lead incoming message
+                        <div className="flex justify-start w-full pr-10 sm:pr-20 my-0.5">
+                          <div className="relative bg-slate-800/80 border border-slate-700/50 rounded-2xl rounded-tl-sm px-4 pt-3 pb-6 shadow-sm max-w-[85%] break-words">
+                            <p className="text-[12px] font-bold text-blue-400 mb-1 leading-none">{activeName}</p>
+                            <p className="text-[14px] leading-[1.5] text-slate-200 break-words whitespace-pre-wrap max-w-full overflow-hidden m-0">{conv.message}</p>
+                            <span className="absolute right-3 bottom-1.5 text-[10px] font-medium text-slate-500 leading-none">{msgTime}</span>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex justify-end w-full pl-12 sm:pl-24 my-1">
-                          <div className={`relative border rounded-xl rounded-tr-sm px-3.5 pt-2.5 pb-[26px] shadow-sm max-w-[85%] break-words ${
-                            isOwner 
-                              ? 'bg-[#312e81] border-indigo-700/50' 
-                              : 'bg-[#064e3b] border-emerald-700/50'
+                        // Outgoing (owner/AI)
+                        <div className="flex justify-end w-full pl-10 sm:pl-20 my-0.5">
+                          <div className={`relative border rounded-2xl rounded-tr-sm px-4 pt-3 pb-6 shadow-sm max-w-[85%] break-words ${
+                            isOwner
+                              ? 'bg-blue-600/20 border-blue-500/30'
+                              : 'bg-emerald-600/15 border-emerald-500/30'
                           }`}>
-                            <svg style={{ position: 'absolute', top: '-1px', right: '-8px' }} width="9" height="14" viewBox="0 0 9 14">
-                              <path d="M0 0 L9 0 L9 14 Q5 7 0 0 Z" fill={isOwner ? '#312e81' : '#064e3b'} />
-                            </svg>
-                            <p className={`text-[13px] font-semibold mb-[5px] flex items-center gap-1.5 leading-none ${
-                              isOwner ? 'text-indigo-300' : 'text-emerald-300'
+                            <p className={`text-[12px] font-bold mb-1 flex items-center gap-1 leading-none ${
+                              isOwner ? 'text-blue-300' : 'text-emerald-300'
                             }`}>
-                              {isOwner ? 'Workspace Owner' : 'NexusAI Automation'}
+                              {isOwner ? 'You' : 'NexusAI'}
                               {isOwner ? <MessageSquare className="h-2.5 w-2.5" /> : <Sparkles className="h-2.5 w-2.5" />}
                             </p>
-                            <p className={`text-[14.5px] leading-[1.4] break-words whitespace-pre-wrap max-w-full overflow-hidden m-0 ${
-                              isOwner ? 'text-indigo-50' : 'text-emerald-50'
+                            <p className={`text-[14px] leading-[1.5] break-words whitespace-pre-wrap max-w-full overflow-hidden m-0 ${
+                              isOwner ? 'text-slate-100' : 'text-slate-100'
                             }`}>
                               {conv.message}
                             </p>
-                            <div className="absolute right-3 bottom-1.5 flex items-center gap-1.5">
-                              <span className="text-[10.5px] font-medium text-white/50 leading-none">{msgTime}</span>
-                              <CheckCheck className={`h-[14px] w-[14px] ${isOwner ? 'text-indigo-300' : 'text-emerald-300'}`} />
+                            <div className="absolute right-3 bottom-1.5 flex items-center gap-1">
+                              <span className="text-[10px] font-medium text-white/40 leading-none">{msgTime}</span>
+                              <CheckCheck className={`h-[13px] w-[13px] ${
+                                isOwner ? 'text-blue-400/60' : 'text-emerald-400/60'
+                              }`} />
                             </div>
                           </div>
                         </div>
@@ -759,10 +784,12 @@ ${leadMems || 'None'}`;
 
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center p-8 text-center text-slate-500 w-full">
-            <Brain className="h-16 w-16 text-slate-800 mb-4" />
-            <h3 className="text-xl font-semibold text-slate-400">Intelligence Standby</h3>
-            <p className="text-sm mt-2 max-w-[250px]">Select a conversation to generate real-time AI insights, health scores, and next best actions.</p>
+          <div className="h-full flex flex-col items-center justify-center p-8 text-center">
+            <div className="h-16 w-16 rounded-full bg-slate-800/60 border border-slate-700 flex items-center justify-center mb-4">
+              <Brain className="h-8 w-8 text-slate-600" />
+            </div>
+            <h3 className="text-[15px] font-semibold text-slate-400">Intelligence Standby</h3>
+            <p className="text-[13px] text-slate-600 mt-2 max-w-[220px] leading-relaxed">Select a conversation to generate real-time AI insights.</p>
           </div>
         )}
       </div>

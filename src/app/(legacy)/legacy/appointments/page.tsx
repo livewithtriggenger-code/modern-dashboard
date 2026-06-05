@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useLegacyStore } from "@/legacy/store/legacy-store";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { AppointmentCardSkeleton } from "@/legacy/components/ui/LegacySkeletons";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -115,7 +116,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function AppointmentsPage() {
-  const { appointments, leads } = useLegacyStore();
+  const { appointments, leads, isLoading } = useLegacyStore();
   const [view, setView] = useState<"calendar" | "agenda">("calendar");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -255,17 +256,27 @@ export default function AppointmentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Appointments</h1>
-          <p className="text-sm text-slate-400 mt-1">Manage scheduled calls and meetings from your Sheets.</p>
+          <h1 className="text-[28px] font-black tracking-tight text-white leading-none">Appointments</h1>
+          <p className="text-sm text-slate-500 mt-2">Manage scheduled calls and meetings.</p>
         </div>
-        <button className="inline-flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-blue-600 text-white rounded-lg px-4 py-2 h-9 text-sm font-medium transition-colors shadow-sm">
+        <button className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-5 py-2 h-9 text-[13px] font-bold transition-all shadow-sm hover:shadow-blue-900/30 hover:shadow-md">
           <Plus className="h-4 w-4" />
           New Appointment
         </button>
       </div>
 
+      {/* Skeleton state */}
+      {isLoading && appointments.length === 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 6 }).map((_, i) => <AppointmentCardSkeleton key={i} />)}
+        </div>
+      ) : null}
+
+      {(!isLoading || appointments.length > 0) && (
+        <>
+
       {/* Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-xl bg-[#0B0F19]/80 border border-slate-800 shadow-sm flex flex-col justify-between h-[110px]">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-slate-400">Total Appointments</span>
@@ -503,14 +514,16 @@ export default function AppointmentsPage() {
 
           {filtered.length === 0 && (
             <div className="py-20 text-center flex flex-col items-center border border-slate-800 rounded-xl bg-[#0B0F19]/30">
-              <div className="h-16 w-16 bg-slate-800/20 rounded-full flex items-center justify-center mb-4">
+              <div className="h-16 w-16 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 border border-slate-700">
                 <CalendarIcon className="h-8 w-8 text-slate-600" />
               </div>
               <p className="text-base font-semibold text-white">No appointments found</p>
-              <p className="text-sm text-slate-500 mt-1">Try adjusting your filters.</p>
+              <p className="text-sm text-slate-500 mt-1">Try adjusting your filters or sync your calendar.</p>
             </div>
           )}
         </div>
+      )}
+      </>
       )}
     </div>
   );

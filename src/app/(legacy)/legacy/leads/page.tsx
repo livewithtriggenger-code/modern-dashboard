@@ -5,7 +5,8 @@ import { useLegacyStore } from "@/legacy/store/legacy-store";
 import { LegacyCard } from "@/legacy/components/ui/LegacyCard";
 import { LegacyBadge } from "@/legacy/components/ui/LegacyBadge";
 import { LegacySlideOver } from "@/legacy/components/ui/LegacySlideOver";
-import { Search, ChevronRight, MessageSquare, Brain, Calendar, CheckCircle2, Activity, AlertCircle, Sparkles, ArrowUpDown } from "lucide-react";
+import { LeadsTableSkeleton } from "@/legacy/components/ui/LegacySkeletons";
+import { Search, ChevronRight, MessageSquare, Brain, Calendar, CheckCircle2, Activity, AlertCircle, Users } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -26,9 +27,23 @@ const getInitials = (name: string) => {
 };
 
 export default function LegacyLeadsPage() {
-  const { leads, memory } = useLegacyStore();
+  const { leads, memory, isLoading } = useLegacyStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+
+  // Deterministic avatar gradient per name
+  const AVATAR_GRADIENTS = [
+    "from-blue-600 to-indigo-600",
+    "from-purple-600 to-violet-600",
+    "from-emerald-600 to-teal-600",
+    "from-rose-600 to-pink-600",
+    "from-amber-600 to-orange-600",
+    "from-cyan-600 to-sky-600",
+  ];
+  const getAvatarGradient = (name: string) => {
+    const idx = (name || "A").charCodeAt(0) % AVATAR_GRADIENTS.length;
+    return AVATAR_GRADIENTS[idx];
+  };
 
   const filteredLeads = useMemo(() => {
     return leads.filter(lead => 
@@ -85,37 +100,44 @@ export default function LegacyLeadsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-white">Leads Pipeline</h1>
-        <p className="text-[13px] text-slate-400 mt-1">Manage, qualify, and track your active sales pipeline leads.</p>
+        <h1 className="text-[28px] font-black tracking-tight text-white leading-none">Leads Pipeline</h1>
+        <p className="text-sm text-slate-500 mt-2">Manage, qualify, and track your active sales pipeline.</p>
       </div>
 
-      <LegacyCard className="p-0 lg:p-0 overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-700/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <h2 className="text-[16px] font-bold text-white tracking-tight">All Leads</h2>
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-            <input
-              type="text"
-              placeholder="Search leads..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-10 pl-10 pr-4 bg-slate-800/50 border border-slate-700/50 rounded-xl text-[13px] text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-            />
+      {isLoading && leads.length === 0 ? (
+        <LeadsTableSkeleton rows={8} />
+      ) : (
+        <div className="bg-[#0B0F19]/60 backdrop-blur-md border border-slate-800/80 rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-[15px] font-bold text-white">All Leads</h2>
+              <p className="text-[12px] text-slate-500 mt-0.5">{filteredLeads.length} lead{filteredLeads.length !== 1 ? "s" : ""} found</p>
+            </div>
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Search by name, company..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full h-9 pl-10 pr-4 bg-slate-800/50 border border-slate-700/50 rounded-lg text-[13px] text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30 transition-all"
+              />
+            </div>
           </div>
-        </div>
+
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-800/30 border-b border-slate-700/50 h-[48px]">
-                <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Lead Details</th>
-                <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Company & Source</th>
-                <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Score</th>
-                <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Added Date</th>
+              <tr className="bg-slate-900/50 border-b border-slate-800 h-[44px]">
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Lead</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Company & Source</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Score</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Added</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700/30">
+            <tbody className="divide-y divide-slate-800/50">
               {filteredLeads.map((lead) => {
                 const isSelected = selectedLeadId === lead.id;
                 return (
@@ -123,18 +145,18 @@ export default function LegacyLeadsPage() {
                     key={lead.id} 
                     onClick={() => setSelectedLeadId(lead.id)}
                     className={cn(
-                      "h-[64px] cursor-pointer transition-colors hover:bg-slate-800/40",
-                      isSelected && "bg-slate-800/60"
+                      "h-[68px] cursor-pointer transition-all duration-150 hover:bg-slate-800/30",
+                      isSelected && "bg-slate-800/50 border-l-2 border-l-blue-500"
                     )}
                   >
                     <td className="px-6 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center text-[12px] font-bold text-white shrink-0">
+                        <div className={cn("w-9 h-9 rounded-full bg-gradient-to-br flex items-center justify-center text-[12px] font-bold text-white shrink-0", getAvatarGradient(lead.fullName))}>
                           {getInitials(lead.fullName)}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[14px] font-bold text-slate-200 leading-tight">{lead.fullName}</span>
-                          <span className="text-[11px] text-slate-500 mt-0.5">ID: {lead.id}</span>
+                          <span className="text-[14px] font-semibold text-slate-100 leading-tight">{lead.fullName}</span>
+                          <span className="text-[11px] text-slate-500 mt-0.5">{lead.email || `ID: ${lead.id}`}</span>
                         </div>
                       </div>
                     </td>
@@ -150,23 +172,30 @@ export default function LegacyLeadsPage() {
                     <td className="px-6 py-3">
                       <LegacyBadge status={lead.status as any} />
                     </td>
-                    <td className="px-6 py-3 text-[13px] text-slate-400">
-                      {formatDate(lead.createdDate)}
-                    </td>
+                    <td className="px-6 py-3 text-[13px] text-slate-400">{formatDate(lead.createdDate)}</td>
                   </tr>
                 );
               })}
               {filteredLeads.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="h-24 text-center text-slate-500 text-[13px]">
-                    No leads found matching your search.
+                  <td colSpan={5}>
+                    <div className="flex flex-col items-center justify-center py-20 gap-4">
+                      <div className="h-16 w-16 bg-slate-800/50 rounded-full flex items-center justify-center border border-slate-700">
+                        <Users className="h-7 w-7 text-slate-500" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-base font-semibold text-slate-300">{searchTerm ? "No leads match your search" : "No leads yet"}</p>
+                        <p className="text-sm text-slate-500 mt-1">{searchTerm ? "Try a different search term." : "Leads will appear here once synced."}</p>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </LegacyCard>
+      </div>
+      )} {/* end isLoading check */}
 
       {/* LEAD DETAIL DRAWER - V1 Parity */}
       <LegacySlideOver
