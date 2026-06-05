@@ -230,7 +230,7 @@ export default function LegacySettingsPage() {
                 value={formData.sheets_url}
                 onChange={e => setFormData({ ...formData, sheets_url: e.target.value })}
                 placeholder="https://docs.google.com/spreadsheets/d/..." 
-                className="h-[40px] text-[13px] rounded-[10px] bg-slate-50/50 border-slate-200/60 font-mono focus:bg-white"
+                className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 font-mono focus:bg-white"
               />
             </div>
             <div className="space-y-1.5">
@@ -239,7 +239,7 @@ export default function LegacySettingsPage() {
                 value={formData.sheets_client_email}
                 onChange={e => setFormData({ ...formData, sheets_client_email: e.target.value })}
                 placeholder="nexusai-crm@project-id.iam.gserviceaccount.com" 
-                className="h-[40px] text-[13px] rounded-[10px] bg-slate-50/50 border-slate-200/60 font-mono focus:bg-white"
+                className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 font-mono focus:bg-white"
               />
             </div>
             <div className="space-y-1.5">
@@ -268,14 +268,14 @@ export default function LegacySettingsPage() {
               variant="secondary"
               onClick={() => runTest('sheets', () => testLegacySheets(formData.sheets_url, formData.sheets_client_email, formData.sheets_private_key))}
               disabled={testingId === 'sheets'}
-              className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700"
+              className="h-[40px] px-4 text-[13px] text-slate-900 rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700"
             >
               {testingId === 'sheets' ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Testing...</> : 'Test Connection'}
             </Button>
             <Button 
               onClick={() => handleSave('sheets')} 
               disabled={savingId === 'sheets'} 
-              className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]"
+              className="h-[40px] px-4 text-[13px] text-slate-900 rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]"
             >
               {savingId === 'sheets' ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Saving...</> : 'Save Credentials'}
             </Button>
@@ -307,7 +307,7 @@ export default function LegacySettingsPage() {
                   value={formData.telegram_bot_token}
                   onChange={e => setFormData({ ...formData, telegram_bot_token: e.target.value })}
                   placeholder="123456789:ABCdefGHIjkl..." 
-                  className="h-[40px] text-[13px] rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
+                  className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
                 />
                 <button onClick={() => toggleKey('tg_token')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors">
                   {showKeys['tg_token'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -321,14 +321,14 @@ export default function LegacySettingsPage() {
               variant="secondary"
               onClick={() => runTest('telegram', () => testTelegramBot(formData.telegram_bot_token))}
               disabled={testingId === 'telegram'}
-              className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700"
+              className="h-[40px] px-4 text-[13px] text-slate-900 rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700"
             >
               {testingId === 'telegram' ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Testing...</> : 'Validate Token'}
             </Button>
             <Button 
               onClick={() => handleSave('telegram')} 
               disabled={savingId === 'telegram'} 
-              className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]"
+              className="h-[40px] px-4 text-[13px] text-slate-900 rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]"
             >
               {savingId === 'telegram' ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Saving...</> : 'Save Credentials'}
             </Button>
@@ -359,7 +359,7 @@ export default function LegacySettingsPage() {
                   value={formData.openai_key}
                   onChange={e => setFormData({ ...formData, openai_key: e.target.value })}
                   placeholder="sk-..." 
-                  className="h-[40px] text-[13px] rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
+                  className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
                 />
                 <button onClick={() => toggleKey('openai')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors">
                   {showKeys['openai'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -397,7 +397,7 @@ export default function LegacySettingsPage() {
                   value={formData.gemini_key}
                   onChange={e => setFormData({ ...formData, gemini_key: e.target.value })}
                   placeholder="AIzaSy..." 
-                  className="h-[40px] text-[13px] rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
+                  className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
                 />
                 <button onClick={() => toggleKey('gemini')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors">
                   {showKeys['gemini'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -435,7 +435,7 @@ export default function LegacySettingsPage() {
                   value={formData.claude_key}
                   onChange={e => setFormData({ ...formData, claude_key: e.target.value })}
                   placeholder="sk-ant-..." 
-                  className="h-[40px] text-[13px] rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
+                  className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
                 />
                 <button onClick={() => toggleKey('claude')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors">
                   {showKeys['claude'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -473,7 +473,7 @@ export default function LegacySettingsPage() {
                   value={formData.grok_key}
                   onChange={e => setFormData({ ...formData, grok_key: e.target.value })}
                   placeholder="xai-..." 
-                  className="h-[40px] text-[13px] rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
+                  className="h-[40px] text-[13px] text-slate-900 rounded-[10px] bg-slate-50/50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
                 />
                 <button onClick={() => toggleKey('grok')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors">
                   {showKeys['grok'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

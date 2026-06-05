@@ -28,14 +28,32 @@ export async function testLegacySheets(spreadsheetUrl: string, clientEmail: stri
   }
 
   try {
-    const authClient = new google.auth.GoogleAuth({
-      credentials: {
-        type: "service_account",
-        client_email: clientEmail.trim(),
-        private_key: privateKey.trim().replace(/\\n/g, "\n"),
-      },
-      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-    });
+    let authClient;
+    const rawSecret = privateKey.trim();
+    
+    if (rawSecret.startsWith("{")) {
+      // Full service account JSON pasted
+      const serviceAccountKey = JSON.parse(rawSecret);
+      authClient = new google.auth.GoogleAuth({
+        credentials: serviceAccountKey,
+        scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+      });
+    } else {
+      let formattedKey = rawSecret;
+      if (formattedKey.startsWith('"') && formattedKey.endsWith('"')) {
+        formattedKey = formattedKey.slice(1, -1);
+      }
+      formattedKey = formattedKey.replace(/\\n/g, "\n");
+
+      authClient = new google.auth.GoogleAuth({
+        credentials: {
+          type: "service_account",
+          client_email: clientEmail.trim(),
+          private_key: formattedKey,
+        },
+        scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+      });
+    }
 
     const sheets = google.sheets({ version: "v4", auth: authClient });
     
