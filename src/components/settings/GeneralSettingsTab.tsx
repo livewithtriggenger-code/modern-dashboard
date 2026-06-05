@@ -116,6 +116,7 @@ export function GeneralSettingsTab() {
         <CardFooter>
           <Button onClick={() => updateSettings.mutate(formData)} disabled={updateSettings.isPending}>Save Preferences</Button>
         </CardFooter>
+      </Card>
       <Card className="mt-6 border-violet-200">
         <CardHeader>
           <CardTitle>Workspace Mode</CardTitle>
