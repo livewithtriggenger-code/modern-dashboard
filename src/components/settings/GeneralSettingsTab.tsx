@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
+import { setUserMode } from "@/actions/mode";
 
 export function GeneralSettingsTab() {
   const { settingsQuery, updateSettings } = useSettings();
@@ -115,6 +116,24 @@ export function GeneralSettingsTab() {
         <CardFooter>
           <Button onClick={() => updateSettings.mutate(formData)} disabled={updateSettings.isPending}>Save Preferences</Button>
         </CardFooter>
+      <Card className="mt-6 border-violet-200">
+        <CardHeader>
+          <CardTitle>Workspace Mode</CardTitle>
+          <CardDescription>Switch between the modern NexusAI CRM and your classic Legacy workflows.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-slate-50">
+            <div>
+              <p className="font-medium text-slate-900">Current Mode: <span className="font-bold text-violet-600">{(settings as any)?.mode === 'legacy' ? 'Legacy (V1)' : 'NexusAI V2'}</span></p>
+              <p className="text-sm text-slate-500 mt-1">
+                You are currently using the modern V2 dashboard. Switch to Legacy to access your Google Sheets integration.
+              </p>
+            </div>
+            <Button variant="outline" onClick={() => setUserMode("legacy")}>
+              Switch to Legacy Mode
+            </Button>
+          </div>
+        </CardContent>
       </Card>
     </>
   );
