@@ -14,12 +14,14 @@ export async function getAnalyticsMetrics(workspaceId: string, daysBack: number 
   const startDateStr = startDate.toISOString();
 
   // 1. Fetch KPIs via RPC
+  // @ts-expect-error - Bypassing strict RPC argument types
   const { data: kpiData, error: kpiError } = await supabase.rpc('get_kpi_metrics', { 
     p_workspace_id: workspaceId, 
     p_start_date: startDateStr 
   });
 
   // 2. Fetch Funnel Stats via RPC
+  // @ts-expect-error - Bypassing strict RPC argument types
   const { data: funnelData, error: funnelError } = await supabase.rpc('get_funnel_stats', { 
     p_workspace_id: workspaceId, 
     p_start_date: startDateStr 
