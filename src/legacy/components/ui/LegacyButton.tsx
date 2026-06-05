@@ -18,37 +18,37 @@ export function LegacyButton({
   ...props 
 }: LegacyButtonProps) {
   
-  const baseStyles = "relative h-[42px] px-6 text-[13px] font-bold rounded-[12px] flex items-center justify-center gap-2 transition-all duration-300 overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+  const baseStyles = "relative h-[42px] px-6 text-[13px] font-bold rounded-[12px] flex items-center justify-center gap-2 transition-all duration-300 overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0F19]"
   
   const variants = {
     primary: cn(
-      "bg-gradient-to-b from-[#3b82f6] to-[#2563eb] text-white",
-      "border border-[#1d4ed8]/50",
-      "shadow-[0_2px_12px_rgba(37,99,235,0.25),inset_0_1px_0_rgba(255,255,255,0.2)]",
-      "hover:shadow-[0_8px_24px_-4px_rgba(37,99,235,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] hover:-translate-y-0.5 hover:from-[#4f8ff7] hover:to-[#2b6aed]",
-      "active:shadow-[0_2px_4px_rgba(37,99,235,0.2)] active:translate-y-0",
-      "focus-visible:ring-blue-500"
+      "bg-gradient-to-b from-blue-500 to-indigo-600 text-white",
+      "border border-indigo-500/50",
+      "shadow-[0_2px_12px_rgba(79,70,229,0.3),inset_0_1px_0_rgba(255,255,255,0.15)]",
+      "hover:shadow-[0_8px_24px_-4px_rgba(79,70,229,0.5),inset_0_1px_0_rgba(255,255,255,0.2)] hover:-translate-y-0.5 hover:from-blue-400 hover:to-indigo-500",
+      "active:shadow-[0_2px_4px_rgba(79,70,229,0.3)] active:translate-y-0",
+      "focus-visible:ring-indigo-500"
     ),
     secondary: cn(
-      "bg-white/80 text-slate-700 backdrop-blur-sm",
-      "border border-slate-200/80",
-      "shadow-[0_2px_8px_rgba(0,0,0,0.02)]",
-      "hover:bg-white hover:text-slate-900 hover:shadow-[0_8px_16px_-4px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 hover:border-slate-300/80",
-      "active:shadow-[0_2px_4px_rgba(0,0,0,0.02)] active:translate-y-0",
-      "focus-visible:ring-slate-400"
+      "bg-slate-800/80 text-slate-200 backdrop-blur-sm",
+      "border border-slate-700/60",
+      "shadow-[0_2px_8px_rgba(0,0,0,0.4)]",
+      "hover:bg-slate-700 hover:text-white hover:shadow-[0_8px_16px_-4px_rgba(0,0,0,0.6)] hover:-translate-y-0.5 hover:border-slate-600",
+      "active:shadow-[0_2px_4px_rgba(0,0,0,0.4)] active:translate-y-0",
+      "focus-visible:ring-slate-500"
     ),
     outline: cn(
-      "bg-transparent text-slate-600",
-      "border border-slate-300",
-      "hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400",
-      "active:bg-slate-100",
-      "focus-visible:ring-slate-400"
+      "bg-transparent text-slate-400",
+      "border border-slate-700",
+      "hover:bg-slate-800/50 hover:text-slate-200 hover:border-slate-600",
+      "active:bg-slate-800",
+      "focus-visible:ring-slate-600"
     )
   }
 
   return (
     <button 
-      className={cn(baseStyles, variants[variant], (disabled || loading) && "opacity-60 pointer-events-none", className)}
+      className={cn(baseStyles, variants[variant], (disabled || loading) && "opacity-50 pointer-events-none", className)}
       disabled={disabled || loading}
       {...props}
     >

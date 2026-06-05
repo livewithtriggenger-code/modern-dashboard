@@ -132,14 +132,14 @@ export default function LegacySettingsPage() {
     if (!msg) return null;
     return (
       <div className={cn(
-        'mt-4 flex items-start gap-3 p-4 rounded-[16px] text-[13px] font-semibold leading-relaxed shadow-sm transition-all duration-300',
+        'mt-6 flex items-start gap-3 p-4 rounded-xl text-[13px] font-semibold leading-relaxed shadow-sm transition-all duration-300',
         msg.success
-          ? 'bg-emerald-50/80 border border-emerald-200/60 text-emerald-800'
-          : 'bg-rose-50/80 border border-rose-200/60 text-rose-800'
+          ? 'bg-emerald-950/40 border border-emerald-900/50 text-emerald-400'
+          : 'bg-rose-950/40 border border-rose-900/50 text-rose-400'
       )}>
         {msg.success
-          ? <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-          : <XCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+          ? <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+          : <XCircle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
         }
         <span>{msg.text}</span>
       </div>
@@ -149,7 +149,7 @@ export default function LegacySettingsPage() {
   if (!mounted) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] w-full gap-5 text-slate-400">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
         <p className="text-[13px] font-bold tracking-widest uppercase">Initializing Legacy Workspace...</p>
       </div>
     );
@@ -161,9 +161,9 @@ export default function LegacySettingsPage() {
       <div className="max-w-[880px] mx-auto space-y-10 pt-10 px-4 sm:px-6">
         
         {/* Header */}
-        <div className="mb-10 pb-8 border-b border-slate-200/50">
-          <h1 className="text-[32px] font-black tracking-tight text-slate-900 leading-tight">Legacy Settings</h1>
-          <p className="text-[15px] text-slate-500 mt-2 font-medium">Configure your core Workspace integrations, Database sync, and AI parameters.</p>
+        <div className="mb-10 pb-8 border-b border-slate-800/60">
+          <h1 className="text-[32px] font-black tracking-tight text-white leading-tight">Legacy Settings</h1>
+          <p className="text-[15px] text-slate-400 mt-2 font-medium">Configure your core Workspace integrations, Database sync, and AI parameters.</p>
         </div>
 
         <LegacyHealthCheck />
@@ -172,12 +172,12 @@ export default function LegacySettingsPage() {
         <LegacyCard>
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
             <div className="flex items-center gap-5">
-              <div className="w-14 h-14 rounded-[16px] bg-gradient-to-b from-emerald-50 to-emerald-100/50 border border-emerald-200/50 flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(16,185,129,0.12)]">
-                <Database className="h-6 w-6 text-emerald-600" />
+              <div className="w-14 h-14 rounded-[16px] bg-emerald-950/50 border border-emerald-900/50 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(16,185,129,0.2)]">
+                <Database className="h-6 w-6 text-emerald-400" />
               </div>
               <div>
-                <h4 className="text-[17px] font-black text-slate-900 tracking-tight">Google Sheets Database</h4>
-                <p className="text-[13px] text-slate-500 font-medium mt-1">Primary CRM database configuration.</p>
+                <h4 className="text-[17px] font-black text-white tracking-tight">Google Sheets Database</h4>
+                <p className="text-[13px] text-slate-400 font-medium mt-1">Primary CRM database configuration.</p>
               </div>
             </div>
             <LegacyBadge status={status.sheets} />
@@ -206,7 +206,7 @@ export default function LegacySettingsPage() {
             />
           </div>
           
-          <div className="flex flex-col sm:flex-row items-center gap-3 pt-6 border-t border-slate-200/50">
+          <div className="flex flex-col sm:flex-row items-center gap-4 pt-6 border-t border-slate-700/50">
             <LegacyButton
               variant="secondary"
               onClick={() => runTest('sheets', () => testLegacySheets(formData.sheets_url, formData.sheets_client_email, formData.sheets_private_key))}
@@ -233,12 +233,12 @@ export default function LegacySettingsPage() {
         <LegacyCard>
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
             <div className="flex items-center gap-5">
-              <div className="w-14 h-14 rounded-[16px] bg-gradient-to-b from-[#0088cc]/10 to-[#0088cc]/5 border border-[#0088cc]/20 flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(0,136,204,0.12)]">
-                <Send className="h-6 w-6 text-[#0088cc] -ml-0.5" />
+              <div className="w-14 h-14 rounded-[16px] bg-sky-950/50 border border-sky-900/50 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(14,165,233,0.2)]">
+                <Send className="h-6 w-6 text-sky-400 -ml-0.5" />
               </div>
               <div>
-                <h4 className="text-[17px] font-black text-slate-900 tracking-tight">Telegram Bot</h4>
-                <p className="text-[13px] text-slate-500 font-medium mt-1">Lead engagement and notifications.</p>
+                <h4 className="text-[17px] font-black text-white tracking-tight">Telegram Bot</h4>
+                <p className="text-[13px] text-slate-400 font-medium mt-1">Lead engagement and notifications.</p>
               </div>
             </div>
             <LegacyBadge status={status.telegram} />
@@ -254,7 +254,7 @@ export default function LegacySettingsPage() {
             />
           </div>
           
-          <div className="flex flex-col sm:flex-row items-center gap-3 pt-6 border-t border-slate-200/50">
+          <div className="flex flex-col sm:flex-row items-center gap-4 pt-6 border-t border-slate-700/50">
             <LegacyButton
               variant="secondary"
               onClick={() => runTest('telegram', () => testTelegramBot(formData.telegram_bot_token))}
@@ -281,14 +281,14 @@ export default function LegacySettingsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           
           {/* OpenAI */}
-          <LegacyCard className="p-6">
+          <LegacyCard className="p-6 lg:p-6">
             <div className="flex items-start justify-between mb-8">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[14px] bg-slate-900 flex items-center justify-center shrink-0 shadow-md">
+                <div className="w-12 h-12 rounded-[14px] bg-slate-800 border border-slate-700/60 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(255,255,255,0.05)]">
                   <Cpu className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h4 className="text-[16px] font-black text-slate-900 tracking-tight">OpenAI</h4>
+                  <h4 className="text-[16px] font-black text-white tracking-tight">OpenAI</h4>
                 </div>
               </div>
               <LegacyBadge status={status.openai} />
@@ -304,7 +304,7 @@ export default function LegacySettingsPage() {
               />
             </div>
             
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 pt-6 border-t border-slate-700/50">
               <LegacyButton 
                 variant="secondary" 
                 onClick={() => runTest('openai', () => testOpenAI(formData.openai_key))} 
@@ -328,14 +328,14 @@ export default function LegacySettingsPage() {
           </LegacyCard>
 
           {/* Gemini */}
-          <LegacyCard className="p-6">
+          <LegacyCard className="p-6 lg:p-6">
             <div className="flex items-start justify-between mb-8">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[14px] bg-gradient-to-b from-blue-50 to-blue-100/50 border border-blue-200/50 flex items-center justify-center shrink-0 shadow-md">
-                  <Cpu className="h-5 w-5 text-blue-600" />
+                <div className="w-12 h-12 rounded-[14px] bg-blue-950/50 border border-blue-900/50 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(59,130,246,0.2)]">
+                  <Cpu className="h-5 w-5 text-blue-400" />
                 </div>
                 <div>
-                  <h4 className="text-[16px] font-black text-slate-900 tracking-tight">Google Gemini</h4>
+                  <h4 className="text-[16px] font-black text-white tracking-tight">Google Gemini</h4>
                 </div>
               </div>
               <LegacyBadge status={status.gemini} />
@@ -351,7 +351,7 @@ export default function LegacySettingsPage() {
               />
             </div>
             
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 pt-6 border-t border-slate-700/50">
               <LegacyButton 
                 variant="secondary" 
                 onClick={() => runTest('gemini', () => testGemini(formData.gemini_key))} 
@@ -375,14 +375,14 @@ export default function LegacySettingsPage() {
           </LegacyCard>
 
           {/* Claude */}
-          <LegacyCard className="p-6">
+          <LegacyCard className="p-6 lg:p-6">
             <div className="flex items-start justify-between mb-8">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[14px] bg-gradient-to-b from-orange-50 to-orange-100/50 border border-orange-200/50 flex items-center justify-center shrink-0 shadow-md">
-                  <Cpu className="h-5 w-5 text-orange-600" />
+                <div className="w-12 h-12 rounded-[14px] bg-orange-950/50 border border-orange-900/50 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(249,115,22,0.2)]">
+                  <Cpu className="h-5 w-5 text-orange-400" />
                 </div>
                 <div>
-                  <h4 className="text-[16px] font-black text-slate-900 tracking-tight">Anthropic Claude</h4>
+                  <h4 className="text-[16px] font-black text-white tracking-tight">Anthropic Claude</h4>
                 </div>
               </div>
               <LegacyBadge status={status.claude} />
@@ -398,7 +398,7 @@ export default function LegacySettingsPage() {
               />
             </div>
             
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 pt-6 border-t border-slate-700/50">
               <LegacyButton 
                 variant="secondary" 
                 onClick={() => runTest('claude', () => testClaude(formData.claude_key))} 
@@ -422,14 +422,14 @@ export default function LegacySettingsPage() {
           </LegacyCard>
 
           {/* Grok */}
-          <LegacyCard className="p-6">
+          <LegacyCard className="p-6 lg:p-6">
             <div className="flex items-start justify-between mb-8">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[14px] bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0 shadow-md">
+                <div className="w-12 h-12 rounded-[14px] bg-slate-950 border border-slate-800 flex items-center justify-center shrink-0 shadow-md">
                   <span className="text-white font-black text-[20px] leading-none">X</span>
                 </div>
                 <div>
-                  <h4 className="text-[16px] font-black text-slate-900 tracking-tight">Grok AI</h4>
+                  <h4 className="text-[16px] font-black text-white tracking-tight">Grok AI</h4>
                 </div>
               </div>
               <LegacyBadge status={status.grok} />
@@ -445,7 +445,7 @@ export default function LegacySettingsPage() {
               />
             </div>
             
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 pt-6 border-t border-slate-700/50">
               <LegacyButton 
                 variant="secondary" 
                 onClick={() => runTest('grok', () => testGrok(formData.grok_key))} 

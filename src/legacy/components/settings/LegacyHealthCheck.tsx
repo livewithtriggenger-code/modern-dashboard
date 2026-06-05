@@ -1,11 +1,11 @@
 "use client";
 
 import { useLegacyStore } from "@/legacy/store/legacy-store";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { LegacyCard } from "@/legacy/components/ui/LegacyCard";
+import { LegacyBadge } from "@/legacy/components/ui/LegacyBadge";
+import { LegacyButton } from "@/legacy/components/ui/LegacyButton";
 import { CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { Button } from "@/components/ui/button";
 
 export function LegacyHealthCheck() {
   const { leads, conversations, appointments, memory, followUps, knowledge, lastSynced, isLoading, refreshData, error } = useLegacyStore();
@@ -13,77 +13,76 @@ export function LegacyHealthCheck() {
   const isConnected = leads.length > 0 || lastSynced !== null;
 
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="bg-slate-50 border-b border-slate-100 flex flex-row items-center justify-between pb-4">
+    <LegacyCard className="mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-700/50 mb-6">
         <div>
-          <CardTitle className="text-lg font-semibold text-slate-800">Legacy Health Check</CardTitle>
-          <div className="text-sm text-slate-500 mt-1">Status of your Google Sheets & Telegram integration</div>
+          <h3 className="text-[18px] font-black text-white tracking-tight">Legacy Health Check</h3>
+          <p className="text-[13px] text-slate-400 mt-1">Status of your Google Sheets & Telegram integration</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => refreshData()} disabled={isLoading}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </CardHeader>
-      <CardContent className="pt-6 space-y-6">
+        <LegacyButton variant="secondary" onClick={() => refreshData()} disabled={isLoading} className="h-9 px-4 text-xs">
+          <RefreshCw className={`w-3.5 h-3.5 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          {isLoading ? 'Refreshing...' : 'Refresh Status'}
+        </LegacyButton>
+      </div>
+
+      <div className="space-y-6">
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm border border-red-100 flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 shrink-0" />
+          <div className="bg-rose-950/40 text-rose-400 p-4 rounded-xl text-[13px] border border-rose-900/50 flex items-start gap-3 shadow-sm">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <div>
-              <strong>Sync Error:</strong> {error}
+              <strong className="font-bold">Sync Error:</strong> {error}
             </div>
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-8">
           <div className="space-y-4">
-            <h3 className="font-medium text-slate-700">Integrations</h3>
+            <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Integrations</h4>
             
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 text-green-600 rounded flex items-center justify-center">
+            <div className="flex items-center justify-between p-3.5 border border-slate-700/60 rounded-xl bg-slate-800/40 hover:bg-slate-800/60 transition-colors">
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 bg-emerald-950/50 text-emerald-400 rounded-lg flex items-center justify-center border border-emerald-900/50 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
                   <TableIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm text-slate-900">Google Sheets</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="font-bold text-[14px] text-slate-200">Google Sheets</p>
+                  <p className="text-[12px] text-slate-500 font-medium">
                     {lastSynced ? `Synced ${formatDistanceToNow(new Date(lastSynced))} ago` : "Waiting for sync..."}
                   </p>
                 </div>
               </div>
-              <Badge variant={isConnected ? "default" : "secondary"} className={isConnected ? "bg-green-500" : ""}>
-                {isConnected ? "Connected" : "Pending"}
-              </Badge>
+              <LegacyBadge status={isConnected ? "connected" : "pending" as any} labelOverride={isConnected ? "Connected" : "Pending"} />
             </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded flex items-center justify-center">
+            <div className="flex items-center justify-between p-3.5 border border-slate-700/60 rounded-xl bg-slate-800/40 hover:bg-slate-800/60 transition-colors">
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 bg-blue-950/50 text-blue-400 rounded-lg flex items-center justify-center border border-blue-900/50 shadow-[0_0_12px_rgba(59,130,246,0.15)]">
                   <BotIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm text-slate-900">Telegram Bot</p>
-                  <p className="text-xs text-slate-500">Status via V1 API</p>
+                  <p className="font-bold text-[14px] text-slate-200">Telegram Bot</p>
+                  <p className="text-[12px] text-slate-500 font-medium">Status via V1 API</p>
                 </div>
               </div>
-              <Badge variant="outline" className="text-blue-600 border-blue-200">Active</Badge>
+              <LegacyBadge status="active" />
             </div>
             
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-violet-100 text-violet-600 rounded flex items-center justify-center">
+            <div className="flex items-center justify-between p-3.5 border border-slate-700/60 rounded-xl bg-slate-800/40 hover:bg-slate-800/60 transition-colors">
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 bg-violet-950/50 text-violet-400 rounded-lg flex items-center justify-center border border-violet-900/50 shadow-[0_0_12px_rgba(139,92,246,0.15)]">
                   <SparklesIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm text-slate-900">AI Provider</p>
-                  <p className="text-xs text-slate-500">Configured in V2 Settings</p>
+                  <p className="font-bold text-[14px] text-slate-200">AI Provider</p>
+                  <p className="text-[12px] text-slate-500 font-medium">Configured in V2 Settings</p>
                 </div>
               </div>
-              <Badge variant="outline" className="text-violet-600 border-violet-200">Active</Badge>
+              <LegacyBadge status="active" />
             </div>
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-medium text-slate-700">Data Synchronization</h3>
+            <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Data Synchronization</h4>
             
             <div className="grid grid-cols-2 gap-3">
               <StatBox label="Total Leads" count={leads.length} />
@@ -95,16 +94,16 @@ export function LegacyHealthCheck() {
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </LegacyCard>
   );
 }
 
 function StatBox({ label, count }: { label: string; count: number }) {
   return (
-    <div className="p-3 bg-slate-50 border rounded-lg text-center">
-      <div className="text-2xl font-bold text-slate-800">{count}</div>
-      <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">{label}</div>
+    <div className="p-4 bg-slate-800/40 border border-slate-700/50 rounded-xl text-center shadow-sm hover:bg-slate-800/60 hover:border-slate-600/50 transition-colors">
+      <div className="text-2xl font-black text-white">{count}</div>
+      <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{label}</div>
     </div>
   );
 }

@@ -8,7 +8,7 @@ export default function LegacyLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-transparent font-sans">
+    <div className="flex h-screen overflow-hidden bg-transparent font-sans text-slate-200">
       <LegacyBackground />
       <LegacySidebar />
       <div className="flex-1 flex flex-col min-w-0 z-10">
