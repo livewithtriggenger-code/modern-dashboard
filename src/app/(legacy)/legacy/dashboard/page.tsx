@@ -109,15 +109,19 @@ export default function LegacyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {appointments.slice(0, 5).map((apt, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">{apt.leadName}</p>
-                    <p className="text-xs text-slate-500">{apt.appointmentDate} {apt.appointmentTime}</p>
+              {appointments.slice(0, 5).map((apt, i) => {
+                const lead = leads.find(l => l.id === apt.leadId || l.conversationId === apt.leadId);
+                const displayName = apt.leadName || lead?.fullName || "Unknown";
+                return (
+                  <div key={i} className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">{displayName}</p>
+                      <p className="text-xs text-slate-500">{apt.appointmentDate} {apt.appointmentTime}</p>
+                    </div>
+                    <div className="text-sm text-slate-500">{apt.status}</div>
                   </div>
-                  <div className="text-sm text-slate-500">{apt.status}</div>
-                </div>
-              ))}
+                );
+              })}
               {appointments.length === 0 && (
                 <div className="text-sm text-slate-500 py-4 text-center">No appointments found in Sheets.</div>
               )}

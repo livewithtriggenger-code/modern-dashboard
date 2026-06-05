@@ -23,7 +23,7 @@ export default function LegacyConversationsPage() {
   );
 
   const selectedLead = activeLeads.find(l => l.conversationId === selectedLeadId);
-  const thread = conversations.filter(c => c.conversationId === selectedLeadId).sort((a, b) => 
+  const thread = conversations.filter(c => c.leadId === selectedLeadId || c.leadId === selectedLead?.id).sort((a, b) => 
     new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   );
 
@@ -126,7 +126,7 @@ export default function LegacyConversationsPage() {
                   }`}
                 >
                   <div className="font-medium text-sm">{lead.fullName}</div>
-                  <div className="text-xs text-slate-500 mt-1 truncate">{lead.businessName}</div>
+                  <div className="text-xs text-slate-500 mt-1 truncate">{lead.businessType}</div>
                 </button>
               ))}
               {filteredLeads.length === 0 && (

@@ -14,8 +14,7 @@ export default function LegacyLeadsPage() {
 
   const filteredLeads = leads.filter(lead => 
     lead.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.businessName.toLowerCase().includes(searchTerm.toLowerCase())
+    lead.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -55,7 +54,7 @@ export default function LegacyLeadsPage() {
               </TableHeader>
               <TableBody>
                 {filteredLeads.map((lead) => (
-                  <TableRow key={lead.row} className="hover:bg-slate-50">
+                  <TableRow key={lead.id || lead.row} className="hover:bg-slate-50">
                     <TableCell className="font-medium text-slate-900">{lead.fullName}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
@@ -65,8 +64,8 @@ export default function LegacyLeadsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="text-sm text-slate-700">{lead.businessName}</span>
-                        <span className="text-xs text-slate-500">{lead.businessType}</span>
+                        <span className="text-sm text-slate-700">{lead.businessType}</span>
+                        <span className="text-xs text-slate-500">{lead.source}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -79,7 +78,7 @@ export default function LegacyLeadsPage() {
                         {lead.leadScore || '-'}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right text-slate-500 text-sm">{lead.date}</TableCell>
+                    <TableCell className="text-right text-slate-500 text-sm">{lead.createdDate}</TableCell>
                   </TableRow>
                 ))}
                 {filteredLeads.length === 0 && (

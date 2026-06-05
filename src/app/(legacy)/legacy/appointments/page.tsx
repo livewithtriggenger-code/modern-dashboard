@@ -10,13 +10,17 @@ import { Search, Calendar, ExternalLink } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 export default function LegacyAppointmentsPage() {
-  const { appointments } = useLegacyStore();
+  const { appointments, leads } = useLegacyStore();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredAppointments = appointments.filter(apt => 
-    apt.leadName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    apt.leadEmail.toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a, b) => new Date(`${a.appointmentDate} ${a.appointmentTime}`).getTime() - new Date(`${b.appointmentDate} ${b.appointmentTime}`).getTime());
+  const filteredAppointments = appointments.filter(apt => {
+    const lead = leads.find(l => l.id === apt.leadId || l.conversationId === apt.leadId);
+    const displayEmail = lead?.email || "";
+    const displayName = apt.leadName || lead?.fullName || "";
+    
+    return displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           displayEmail.toLowerCase().includes(searchTerm.toLowerCase());
+  }).sort((a, b) => new Date(`${a.appointmentDate} ${a.appointmentTime}`).getTime() - new Date(`${b.appointmentDate} ${b.appointmentTime}`).getTime());
 
   return (
     <div className="space-y-6">
@@ -63,8 +67,13 @@ export default function LegacyAppointmentsPage() {
                     }
                   } catch(e) {}
 
+                  const lead = leads.find(l => l.id === apt.leadId || l.conversationId === apt.leadId);
+                  const displayEmail = lead?.email || "-";
+                  const displayPhone = lead?.phone || "-";
+                  const displayName = apt.leadName || lead?.fullName || "Unknown";
+
                   return (
-                    <TableRow key={apt.row} className="hover:bg-slate-50">
+                    <TableRow key={apt.id || apt.row} className="hover:bg-slate-50">
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-slate-400" />
@@ -74,11 +83,11 @@ export default function LegacyAppointmentsPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium text-slate-900">{apt.leadName}</TableCell>
+                      <TableCell className="font-medium text-slate-900">{displayName}</TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="text-sm text-slate-600">{apt.leadEmail}</span>
-                          <span className="text-xs text-slate-500">{apt.leadPhone}</span>
+                          <span className="text-sm text-slate-600">{displayEmail}</span>
+                          <span className="text-xs text-slate-500">{displayPhone}</span>
                         </div>
                       </TableCell>
                       <TableCell>

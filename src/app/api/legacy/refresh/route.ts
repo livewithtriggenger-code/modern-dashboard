@@ -3,14 +3,14 @@ import { getAuthenticatedUser } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { getLegacySheetsClient, extractSpreadsheetId } from '@/legacy/providers/google-sheets-provider';
 
-// Hardcoded expected tabs for the legacy CRM
+// Hardcoded expected tabs for the legacy CRM, matching V1 exact ranges
 const EXPECTED_TABS = [
-  { key: 'leads', expectedNames: ['Leads', 'Lead', 'Contacts', 'Sheet1'], range: 'A2:S' },
-  { key: 'conversations', expectedNames: ['Conversations', 'Messages', 'Chat', 'Sheet2'], range: 'A2:F' },
-  { key: 'appointments', expectedNames: ['Appointments', 'Meetings', 'Calendar', 'Sheet3'], range: 'A2:J' },
-  { key: 'memory', expectedNames: ['AI_Memory', 'Memory', 'AI Memory', 'Sheet4'], range: 'A2:G' },
-  { key: 'followUps', expectedNames: ['Follow_Ups', 'FollowUps', 'Follow Ups', 'Tasks', 'Sheet5'], range: 'A2:H' },
-  { key: 'knowledge', expectedNames: ['Business_Knowledge', 'Knowledge', 'Business Knowledge', 'Settings', 'Sheet6'], range: 'A2:D' }
+  { key: 'leads', expectedNames: ['Leads (Master Lead Database)', 'Leads', 'Lead', 'Contacts', 'Sheet1'], range: 'A2:AD' },
+  { key: 'conversations', expectedNames: ['Conversation History', 'Conversations', 'Messages', 'Chat', 'Sheet2'], range: 'A2:H' },
+  { key: 'appointments', expectedNames: ['Appointments', 'Meetings', 'Calendar', 'Sheet3'], range: 'A2:I' },
+  { key: 'memory', expectedNames: ['AI Memory', 'AI_Memory', 'Memory', 'Sheet4'], range: 'A2:D' },
+  { key: 'followUps', expectedNames: ['Follow-Up Queue', 'Follow_Ups', 'FollowUps', 'Follow Ups', 'Tasks', 'Sheet5'], range: 'A2:I' },
+  { key: 'knowledge', expectedNames: ['Business_Knowledge', 'Knowledge', 'Business Knowledge', 'Settings', 'Sheet6'], range: 'A2:H' }
 ];
 
 export async function GET() {
@@ -99,7 +99,7 @@ export async function GET() {
     }
     diagnostics.step6_batchGet = "Success";
 
-    // 7. Data Mapping
+    // 7. Data Mapping exactly replicating V1
     diagnostics.step7_dataMapping = "Started";
     const result: any = {
       leads: [],
@@ -118,80 +118,82 @@ export async function GET() {
       if (key === 'leads') {
         result.leads = rows.map((row, i) => ({
           row: i + 2,
-          date: row[0] || '',
-          fullName: row[1] || '',
-          email: row[2] || '',
-          phone: row[3] || '',
-          source: row[4] || '',
-          businessName: row[5] || '',
-          businessType: row[6] || '',
-          leadScore: row[7] || '',
-          status: row[8] || '',
-          intent: row[9] || '',
-          urgency: row[10] || '',
-          aiSummary: row[11] || '',
-          recommendedAction: row[12] || '',
-          lastContactDate: row[13] || '',
-          nextFollowUpDate: row[14] || '',
-          conversationId: row[15] || '',
-          assignedTo: row[16] || '',
-          tags: row[17] || '',
-          notes: row[18] || ''
+          id: row[0] || "",
+          conversationId: row[1] || "",
+          fullName: row[2] || "",
+          email: row[3] || "",
+          phone: row[4] || "",
+          source: row[5] || "",
+          businessType: row[8] || "",
+          status: row[9] || "new",
+          leadScore: parseInt(row[10]) || 0,
+          intent: row[11] || "low",
+          urgency: row[12] || "low",
+          createdDate: row[17] || new Date().toISOString(),
+          lastContactTime: row[18] || new Date().toISOString(),
+          bookedCall: row[22] === "TRUE",
+          reminderSent: row[28] === "TRUE",
+          notes: row[29] || "",
         }));
       } else if (key === 'conversations') {
         result.conversations = rows.map((row, i) => ({
           row: i + 2,
-          timestamp: row[0] || '',
-          conversationId: row[1] || '',
-          sender: row[2] || 'human',
-          message: row[3] || '',
-          platform: row[4] || '',
-          status: row[5] || ''
+          id: row[0] || "",
+          leadId: row[1] || "",
+          sender: row[2] || "",
+          message: row[3] || "",
+          channel: row[4] || "",
+          messageType: row[5] || "",
+          timestamp: row[6] || new Date().toISOString(),
         }));
       } else if (key === 'appointments') {
         result.appointments = rows.map((row, i) => ({
           row: i + 2,
-          dateCreated: row[0] || '',
-          appointmentDate: row[1] || '',
-          appointmentTime: row[2] || '',
-          leadName: row[3] || '',
-          leadPhone: row[4] || '',
-          leadEmail: row[5] || '',
-          status: row[6] || '',
-          notes: row[7] || '',
-          meetingLink: row[8] || '',
-          googleEventId: row[9] || ''
+          id: row[0] || "",
+          leadId: row[1] || "",
+          leadName: "", 
+          meetingLink: row[2] || "",
+          appointmentDate: row[3] || "",
+          appointmentTime: row[4] || "",
+          appointmentStart: row[5] || "",
+          appointmentEnd: row[6] || "",
+          status: row[7] || "scheduled",
+          reminderSent: row[8] === "TRUE",
         }));
       } else if (key === 'memory') {
         result.memory = rows.map((row, i) => ({
           row: i + 2,
-          dateAdded: row[0] || '',
-          leadName: row[1] || '',
-          leadPhone: row[2] || '',
-          memoryType: row[3] || '',
-          content: row[4] || '',
-          source: row[5] || '',
-          confidenceScore: row[6] || ''
+          id: `mem_${i}_${row[0]}_${row[1]}`, 
+          leadId: row[0] || "",
+          leadName: "", 
+          memoryType: row[1] || "context",
+          memoryValue: row[2] || "",
+          lastUpdated: row[3] || new Date().toISOString(),
         }));
       } else if (key === 'followUps') {
         result.followUps = rows.map((row, i) => ({
           row: i + 2,
-          dateCreated: row[0] || '',
-          scheduledDate: row[1] || '',
-          scheduledTime: row[2] || '',
-          leadName: row[3] || '',
-          leadPhone: row[4] || '',
-          messageTemplate: row[5] || '',
-          status: row[6] || '',
-          actualSentTime: row[7] || ''
+          id: row[0] || "",
+          leadId: row[1] || "",
+          leadName: row[2] || "",
+          followUpNumber: parseInt(row[3]) || 1,
+          followUpMessage: row[4] || "",
+          scheduledTime: row[5] || new Date().toISOString(),
+          status: row[6] || "pending",
+          messageSent: row[7] === "TRUE",
+          responseReceived: row[8] === "TRUE",
         }));
       } else if (key === 'knowledge') {
         result.knowledge = rows.map((row, i) => ({
           row: i + 2,
-          category: row[0] || '',
-          key: row[1] || '',
-          value: row[2] || '',
-          lastUpdated: row[3] || ''
+          id: row[0] || "",
+          businessName: row[1] || "",
+          services: row[2] ? row[2].split(",").map((s: string) => s.trim()) : [],
+          pricing: row[3] || "",
+          faqs: row[4] ? JSON.parse(row[4]) : [],
+          hours: row[5] || "",
+          policies: row[6] || "",
+          bookingLink: row[7] || "",
         }));
       }
     });

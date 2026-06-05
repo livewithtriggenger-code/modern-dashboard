@@ -66,6 +66,10 @@ export const useLegacyStore = create<LegacyState>((set) => ({
       }
       const data = await response.json();
       
+      if (data.diagnostics) {
+        console.log("Legacy Server Diagnostics:", data.diagnostics);
+      }
+      
       set({
         leads: data.leads || [],
         conversations: data.conversations || [],

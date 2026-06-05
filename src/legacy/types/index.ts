@@ -1,81 +1,84 @@
 // V1 exact data models
 
 export interface LegacyLead {
-  row: number;
-  date: string;
+  id: string;
+  conversationId: string;
   fullName: string;
   email: string;
   phone: string;
   source: string;
-  businessName: string;
   businessType: string;
-  leadScore: string;
-  status: string;
-  intent: string;
-  urgency: string;
-  aiSummary: string;
-  recommendedAction: string;
-  lastContactDate: string;
-  nextFollowUpDate: string;
-  conversationId: string;
-  assignedTo: string;
-  tags: string;
-  notes: string;
+  leadScore: number;
+  intent: "high" | "medium" | "low";
+  urgency: "urgent" | "high" | "medium" | "low";
+  status: "new" | "qualified" | "contacted" | "converted" | "lost";
+  bookedCall: boolean;
+  reminderSent: boolean;
+  createdDate: string;
+  lastContactTime: string;
+  notes?: string;
+  row?: number; // Kept for UI loop keying if needed, though V1 uses id
 }
 
 export interface LegacyConversation {
-  row: number;
-  timestamp: string;
-  conversationId: string;
-  sender: 'ai' | 'lead' | 'human';
+  id: string;
+  leadId: string;
+  sender: string;
   message: string;
-  platform: string;
-  status: string;
+  channel: string;
+  messageType: string;
+  timestamp: string;
+  row?: number;
 }
 
 export interface LegacyAppointment {
-  row: number;
-  dateCreated: string;
+  id: string;
+  leadId: string;
+  leadName: string;
   appointmentDate: string;
   appointmentTime: string;
-  leadName: string;
-  leadPhone: string;
-  leadEmail: string;
-  status: string;
-  notes: string;
+  appointmentStart?: string;
+  appointmentEnd?: string;
   meetingLink: string;
-  googleEventId: string;
+  status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no-show";
+  reminderSent: boolean;
+  notes?: string;
+  row?: number;
 }
 
 export interface LegacyMemory {
-  row: number;
-  dateAdded: string;
+  id: string;
+  leadId: string;
   leadName: string;
-  leadPhone: string;
-  memoryType: string;
-  content: string;
-  source: string;
-  confidenceScore: string;
+  memoryType: "preference" | "behavior" | "context" | "intent" | "objection" | "timeline";
+  memoryValue: string;
+  lastUpdated: string;
+  row?: number;
 }
 
 export interface LegacyFollowUp {
-  row: number;
-  dateCreated: string;
-  scheduledDate: string;
-  scheduledTime: string;
+  id: string;
+  leadId: string;
   leadName: string;
-  leadPhone: string;
-  messageTemplate: string;
-  status: string;
-  actualSentTime: string;
+  followUpNumber: number;
+  followUpMessage: string;
+  scheduledTime: string;
+  status: "pending" | "sent" | "completed" | "failed";
+  messageSent: boolean;
+  responseReceived: boolean;
+  row?: number;
 }
 
 export interface LegacyBusinessKnowledge {
-  row: number;
-  category: string;
-  key: string;
-  value: string;
-  lastUpdated: string;
+  id: string;
+  businessName: string;
+  services: string[];
+  pricing: string;
+  faqs: { question: string; answer: string }[];
+  hours: string;
+  policies: string;
+  bookingLink: string;
+  row?: number;
 }
 
 export interface LegacySettings {

@@ -9,14 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Search, BrainCircuit } from "lucide-react";
 
 export default function LegacyMemoryPage() {
-  const { memory } = useLegacyStore();
+  const { memory, leads } = useLegacyStore();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredMemory = memory.filter(mem => 
-    mem.leadName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mem.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mem.memoryType.toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
+  const filteredMemory = memory.filter(mem => {
+    const lead = leads.find(l => l.id === mem.leadId || l.conversationId === mem.leadId);
+    const displayName = mem.leadName || lead?.fullName || "Unknown";
+    
+    return displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           mem.memoryValue.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           mem.memoryType.toLowerCase().includes(searchTerm.toLowerCase());
+  }).sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
 
   return (
     <div className="space-y-6">
@@ -49,42 +52,42 @@ export default function LegacyMemoryPage() {
                   <TableHead className="font-semibold text-slate-600">Lead</TableHead>
                   <TableHead className="font-semibold text-slate-600">Type</TableHead>
                   <TableHead className="font-semibold text-slate-600 w-1/2">Content</TableHead>
-                  <TableHead className="font-semibold text-slate-600 text-right">Confidence</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredMemory.map((mem) => (
-                  <TableRow key={mem.row} className="hover:bg-slate-50">
-                    <TableCell className="text-sm text-slate-500 whitespace-nowrap">
-                      {mem.dateAdded}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium text-slate-900">{mem.leadName}</span>
-                        <span className="text-xs text-slate-500">{mem.leadPhone}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-slate-100 text-slate-700">
-                        {mem.memoryType}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-start gap-2">
-                        <BrainCircuit className="w-4 h-4 text-violet-400 mt-0.5 shrink-0" />
-                        <span className="text-sm text-slate-700">{mem.content}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="inline-flex items-center justify-center w-12 h-6 rounded bg-green-50 text-xs font-medium text-green-700 border border-green-100">
-                        {mem.confidenceScore}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredMemory.map((mem) => {
+                  const lead = leads.find(l => l.id === mem.leadId || l.conversationId === mem.leadId);
+                  const displayName = mem.leadName || lead?.fullName || "Unknown";
+                  const displayPhone = lead?.phone || "-";
+
+                  return (
+                    <TableRow key={mem.id || mem.row} className="hover:bg-slate-50">
+                      <TableCell className="text-sm text-slate-500 whitespace-nowrap">
+                        {mem.lastUpdated}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-slate-900">{displayName}</span>
+                          <span className="text-xs text-slate-500">{displayPhone}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-slate-100 text-slate-700">
+                          {mem.memoryType}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-start gap-2">
+                          <BrainCircuit className="w-4 h-4 text-violet-400 mt-0.5 shrink-0" />
+                          <span className="text-sm text-slate-700">{mem.memoryValue}</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
                 {filteredMemory.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-slate-500">
+                    <TableCell colSpan={4} className="h-24 text-center text-slate-500">
                       No memory data found.
                     </TableCell>
                   </TableRow>
